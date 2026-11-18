@@ -191,6 +191,15 @@ a{color:inherit}
 .opt b{font-size:calc(18px*var(--s))}
 
 /* farmácias */
+.chips-row{display:flex;flex-wrap:wrap;gap:8px}
+.fchip{min-height:40px;border-radius:8px;border:1px solid var(--outline);background:transparent;padding:6px 14px;font-weight:700;font-size:calc(14px*var(--s));display:inline-flex;align-items:center;gap:6px;cursor:pointer;color:var(--on-surface);position:relative}
+.fchip::after{content:"";position:absolute;inset:-4px 0}
+.fchip[aria-pressed="true"]{background:var(--navy-c);color:var(--on-navy-c);border-color:transparent}
+.fchip .ic{width:18px;height:18px}
+.notif{position:absolute;left:10px;right:10px;top:40px;background:var(--surface-3);color:var(--on-surface);border-radius:20px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;pointer-events:auto;box-shadow:0 10px 30px rgba(0,0,0,.3);animation:down .25s ease-out;cursor:pointer;border:0;text-align:left;font-size:calc(14px*var(--s))}
+.notif .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+@keyframes down{from{transform:translateY(-16px);opacity:0}}
+.navbar button{font-size:calc(12px*var(--s))}
 .pmc{gap:calc(8px*var(--s))}
 .pmc-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:6px;border-top:1px solid var(--outline-v)}
 .pmc-row .grow{flex:1;min-width:0;display:flex;flex-direction:column}
@@ -402,6 +411,9 @@ const P = {
   person:'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
   phone:'M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14z',
   pill:'M4.22 11.29l7.07-7.07a5 5 0 0 1 7.07 7.07l-7.07 7.07a5 5 0 0 1-7.07-7.07zm1.41 1.41a3 3 0 0 0 4.24 4.24l3.54-3.53-4.25-4.24-3.53 3.53z',
+  volume:'M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z',
+  share:'M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11A2.99 2.99 0 1 0 15 5c0 .24.04.47.09.7L8.04 9.81A2.99 2.99 0 1 0 6 15c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z',
+  bell:'M12 22c1.1 0 2-.9 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z',
   calendar:'M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-2 .9-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h5v5H7z'
 };
 const ic = (n, cls='ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${P[n]}"/></svg>`;
@@ -462,6 +474,14 @@ const medById = id => MEDS.find(m => m.id===id);
 const foraById = id => FORA.find(m => m.id===id);
 
 /* ---------- Estado ---------- */
+const DAY=864e5;
+const daysAgo = n => { const d=new Date(); d.setHours(12,0,0,0); return new Date(d.getTime()-n*DAY).toISOString().slice(0,10); };
+const fmtD = iso => { const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
+const addD = (iso,n) => new Date(new Date(iso+'T12:00:00').getTime()+n*DAY).toISOString().slice(0,10);
+const todayIso = () => daysAgo(0);
+const daysUntil = iso => Math.round((new Date(iso+'T12:00:00') - new Date(todayIso()+'T12:00:00'))/DAY);
+const GRUPOS = [['pressao','Pressão alta',/Hipertens/],['diabetes','Diabetes',/Diabetes/],['asma','Asma',/Asma/],['rinite','Rinite',/Rinite/],['colesterol','Colesterol alto',/Colesterol/],['osteoporose','Osteoporose',/Osteoporose/],['parkinson','Parkinson',/Parkinson/],['glaucoma','Glaucoma',/Glaucoma/]];
+const grupoDe = m => (GRUPOS.find(g=>g[2].test(m.indic))||[])[0];
 const sim = {net:'on', cam:'ok', ocr:'ok', qr:'ok', upd:'ok', font:1};
 const S = {
   screen:'splash', stack:[], firstRun:true,
@@ -469,6 +489,7 @@ const S = {
   med:null, presIdx:null, brandFrom:null, fora:null,
   cep:'05835-005', cepErr:null,
   camMode:'foto', privFromDados:false,
+  saved:[{id:'losartana', idx:1, last:daysAgo(28), remind:true}], notif:false,
   saveHistory:true, history:['Aradois','Losartana potássica','Metformina','Insulina'],
   dialog:null, snack:null, listDate:LIST_DATE, recipeSource:'foto'
 };
@@ -488,6 +509,7 @@ const navbar = cur => `
   <nav class="navbar" aria-label="Navegação principal">
     <button data-nav="inicio" ${cur==='inicio'?'aria-current="page"':''}><span class="pill">${ic('home')}</span>Início</button>
     <button data-nav="camera" ${cur==='camera'?'aria-current="page"':''}><span class="pill">${ic('camera')}</span>Receita</button>
+    <button data-nav="meus" ${cur==='meus'?'aria-current="page"':''}><span class="pill">${ic('pill')}</span>Remédios</button>
     <button data-nav="dados" ${cur==='dados'?'aria-current="page"':''}><span class="pill">${ic('shield')}</span>Meus dados</button>
   </nav>`;
 const listDateLine = () => `<p class="src">${ic('calendar','ic')} Lista do Farmácia Popular atualizada em <b>${S.listDate}</b></p>`;
@@ -567,7 +589,7 @@ T.privacidade = () => `
     <h${S.privFromDados?'2':'1'} class="t-display" ${S.privFromDados?'':'tabindex="-1" data-focus'}>Seus dados ficam com você</h${S.privFromDados?'2':'1'}>
     <ul class="priv t-body">
       <li>${ic('person')}<span><b>Sem login e sem cadastro.</b> Você não informa nome, CPF nem e-mail.</span></li>
-      <li>${ic('phone')}<span><b>Suas buscas ficam só neste celular.</b> Você pode apagar quando quiser em Meus dados.</span></li>
+      <li>${ic('phone')}<span><b>Suas buscas e seus remédios salvos ficam só neste celular.</b> Você pode apagar quando quiser.</span></li>
       <li>${ic('camera')}<span><b>A foto da receita é lida no próprio celular</b> e não é enviada para nenhum servidor.</span></li>
       <li>${ic('pin')}<span><b>O CEP serve só para achar farmácias perto de você</b> e fica guardado neste celular.</span></li>
       <li>${ic('shield')}<span>Seguimos a Lei Geral de Proteção de Dados (LGPD, Lei nº 13.709/2018).</span></li>
@@ -588,6 +610,7 @@ T.inicio = () => `
       ${ic('search')}
       <button class="fake-field" data-go="busca" style="border:0;background:transparent;min-height:52px;padding:0 8px">Digite o nome do remédio</button>
     </div>
+    ${nextPickupCard()}
     <div class="card navy">
       <p class="t-title">Tem a receita em mãos?</p>
       <p class="t-small">Fotografe a receita de papel ou leia o QR code da receita digital. A leitura acontece no seu celular.</p>
@@ -596,6 +619,7 @@ T.inicio = () => `
         <button class="btn outlined block" data-act="openCam" data-mode="qr" style="color:var(--on-navy-c);border-color:var(--on-navy-c)">${ic('qr')} Ler QR code</button>
       </div>
     </div>
+    <button class="li boxed" data-go="lista">${ic('doc')}<span class="grow"><b>Ver todos os remédios gratuitos</b><span class="sub">${MEDS.length} remédios, separados por doença</span></span>${ic('chev')}</button>
     <div class="stack">
       <p class="t-label">Para retirar de graça, leve</p>
       <ul class="priv t-body">
@@ -718,8 +742,8 @@ T.dosagem = () => { const m=S.med||medById('losartana'); return `
 
 const brandBanner = () => `<div class="banner info" role="note">${ic('info')}<p><b>${esc(S.brandFrom)}</b> é um nome comercial. No Farmácia Popular, ele aparece pelo princípio ativo: <b>${S.med.nome.toLowerCase()}</b>.</p></div>`;
 
-T.resultado = () => { const m=S.med||medById('losartana'); const pr=m.apres[S.presIdx??0]; return `
-  ${topbar('Resultado')}
+T.resultado = () => { const m=S.med||medById('losartana'); const pr=m.apres[S.presIdx??0]; const sv=isSaved(m.id,S.presIdx??0); return `
+  ${topbar('Resultado', {right:`<button class="icon-btn" data-act="speak" aria-label="Ouvir o resultado">${ic('volume','')}</button><button class="icon-btn" data-act="share" aria-label="Compartilhar o resultado">${ic('share','')}</button>`})}
   <div class="scroll">
     ${S.brandFrom?brandBanner():''}
     <section class="card hero" aria-labelledby="res-name">
@@ -728,6 +752,7 @@ T.resultado = () => { const m=S.med||medById('losartana'); const pr=m.apres[S.pr
       <p class="t-title">${presLabel(pr)}</p>
       <span class="status free" style="align-self:flex-start">${ic('check')} Gratuito no Farmácia Popular</span>
       <dl class="kv"><dt>Para</dt><dd>${m.indic}</dd><dt>Lista</dt><dd>Atualizada em ${S.listDate}</dd></dl>
+      <button class="btn ${sv?'outlined':'filled'}" data-act="toggleSave" style="align-self:flex-start" aria-pressed="${sv}">${ic(sv?'check':'pill')} ${sv?'Salvo em Meus remédios':'Salvar em Meus remédios'}</button>
     </section>
     ${m.nota?`<div class="banner warn">${ic('info')}<p>${m.nota}</p></div>`:''}
     <section class="stack" aria-labelledby="levar">
@@ -884,6 +909,55 @@ T.camindisp = () => errScreen({title:'Câmera indisponível', icon:'nocam', tone
   body:`<p class="t-body">Outro app pode estar usando a câmera, ou este aparelho não tem câmera traseira.</p><p class="t-small">Feche os outros apps de câmera e tente de novo.</p>`,
   actions:`<button class="btn filled block" data-act="openCam" data-mode="${S.camMode}">${ic('refresh')} Tentar de novo</button><button class="btn outlined block" data-act="typeName">${ic('search')} Digitar o nome do remédio</button>`});
 
+function isSaved(id,idx){ return S.saved.some(x=>x.id===id&&x.idx===idx); }
+function nextPickupCard(){
+  if (!S.saved.length) return '';
+  const it=[...S.saved].sort((a,b)=>addD(a.last,30)<addD(b.last,30)?-1:1)[0]; const m=medById(it.id), pr=m.apres[it.idx];
+  const nx=addD(it.last,30), dd=daysUntil(nx);
+  return `<button class="li boxed" data-nav="meus" style="background:var(--amber-c);color:var(--on-amber-c);border-color:transparent">${ic('calendar')}<span class="grow"><b>Próxima retirada ${dd<=0?'já pode ser feita':dd===1?'amanhã':`em ${dd} dias`}</b><span class="sub" style="color:inherit">${m.nome} ${pr.d} · ${fmtD(nx)}</span></span>${ic('chev')}</button>`;
+}
+T.meus = () => `
+  <header class="topbar"><h1 tabindex="-1" data-focus style="padding-left:12px">Meus remédios</h1></header>
+  <div class="scroll">
+    <p class="t-small">Salve os remédios que você retira todo mês. O EconoMed calcula a próxima retirada, 30 dias depois da última, e avisa antes. Tudo fica só neste celular.</p>
+    ${S.saved.length ? S.saved.map((it,i)=>{ const m=medById(it.id), pr=m.apres[it.idx]; const nx=addD(it.last,30), dd=daysUntil(nx); return `
+      <article class="card out" aria-labelledby="sv${i}">
+        <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap">
+          <div style="min-width:0"><h2 class="t-title" id="sv${i}">${m.nome} ${pr.d}</h2><p class="t-small">${pr.f} · ${m.indic}</p></div>
+          <span class="chip free">${ic('check')}Gratuito</span>
+        </div>
+        <dl class="kv"><dt>Última retirada</dt><dd>${fmtD(it.last)}</dd><dt>Próxima</dt><dd>${fmtD(nx)} · ${dd<=0?'já pode retirar':dd===1?'amanhã':`em ${dd} dias`}</dd></dl>
+        <div class="row" style="justify-content:space-between;flex-wrap:nowrap;gap:12px;min-height:48px">
+          <label for="rm${i}" class="t-body" style="flex:1;display:flex;gap:8px;align-items:center">${ic('bell')} Avisar 3 dias antes</label>
+          <span class="switch"><input type="checkbox" role="switch" id="rm${i}" data-remind="${i}" ${it.remind?'checked':''}><span></span></span>
+        </div>
+        <div class="stack">
+          <button class="btn tonal" data-act="pickedToday" data-i="${i}">${ic('check')} Retirei hoje</button>
+          <div class="row" style="justify-content:space-between">
+            <button class="btn text" data-act="openSaved" data-i="${i}">Ver farmácias ${ic('chev')}</button>
+            <button class="btn text" data-act="askRemove" data-i="${i}" style="color:var(--error)">${ic('del')} Remover</button>
+          </div>
+        </div>
+      </article>`; }).join('') : `
+      <div class="center" style="flex:none;padding:24px 0">
+        <div class="state-ic ok">${ic('pill','')}</div>
+        <h2 class="t-head">Nenhum remédio salvo</h2>
+        <p class="t-small">Busque um remédio e toque em “Salvar em Meus remédios” no resultado.</p>
+      </div>`}
+    <button class="btn outlined" data-act="typeName">${ic('search')} Buscar e salvar outro remédio</button>
+  </div>
+  ${navbar('meus')}`;
+
+T.lista = () => { const g=S.grupo||'todos'; const meds=MEDS.filter(m=>g==='todos'||grupoDe(m)===g); const nap=MEDS.reduce((n,m)=>n+m.apres.filter(a=>a.p).length,0); return `
+  ${topbar('Remédios gratuitos')}
+  <div class="scroll">
+    <p class="t-small">${MEDS.length} remédios e ${nap} apresentações gratuitas no Farmácia Popular · lista de ${S.listDate}</p>
+    <div class="chips-row" role="group" aria-label="Filtrar por doença">
+      ${[['todos','Todos'],...GRUPOS].map(([k,l])=>`<button class="fchip" data-act="setGrupo" data-g="${k}" aria-pressed="${g===k}">${g===k?ic('check'):''}${l}</button>`).join('')}
+    </div>
+    <ul class="list">${meds.map(m=>`<li><button class="li" data-act="pickMed" data-id="${m.id}">${ic('pill')}<span class="grow"><b>${m.nome}</b><span class="sub">${m.apres.filter(a=>a.p).map(a=>a.d).join(' · ')}</span></span>${ic('chev')}</button></li>`).join('')}</ul>
+  </div>`; };
+
 T.dados = () => `
   <header class="topbar"><h1 tabindex="-1" data-focus style="padding-left:12px">Meus dados</h1></header>
   <div class="scroll">
@@ -923,6 +997,7 @@ function go(screen, opts={}){
   else if (!opts.replace && S.screen && S.screen!==screen && !['splash','lendo'].includes(S.screen)) S.stack.push(S.screen);
   S.screen = screen;
   if (screen!=='privacidade') S.privFromDados = S.privFromDados && false;
+  S.notif=false;
   render(true);
 }
 function back(){
@@ -958,6 +1033,18 @@ function renderOverlay(){
       <div class="acts"><button class="btn text" data-act="closeDialog" id="dlg-cancel">Cancelar</button><button class="btn danger" data-act="confirmDelete">Apagar</button></div>
     </div></div>`;
   }
+  if (S.dialog==='remove'){ const it=S.saved[S.removeIdx]; const m=it&&medById(it.id);
+    if (m) h += `<div class="scrim" data-act="closeDialog"><div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dlg-t" aria-describedby="dlg-d" data-stop>
+      ${ic('del','ic ic-top')}
+      <h2 id="dlg-t">Remover ${m.nome} ${m.apres[it.idx].d}?</h2>
+      <p class="t-body" id="dlg-d">O lembrete de retirada também será apagado deste celular.</p>
+      <div class="acts"><button class="btn text" data-act="closeDialog" id="dlg-cancel">Cancelar</button><button class="btn danger" data-act="confirmRemove">Remover</button></div>
+    </div></div>`; }
+  if (S.notif && S.saved.length){ const it=S.saved[0], m=medById(it.id);
+    h += `<button class="notif" data-act="openNotif" aria-label="Notificação do EconoMed">
+      <svg width="28" height="28" viewBox="0 0 48 48" aria-hidden="true"><use href="#logo"/></svg>
+      <span class="grow"><span class="t-small">EconoMed · agora</span><b>Sua retirada está chegando</b><span>${m.nome} ${m.apres[it.idx].d} pode ser retirado a partir de ${fmtD(addD(it.last,30))}. Leve a receita e o documento com CPF.</span></span>
+    </button>`; }
   if (S.snack){
     h += `<div class="snack" role="status"><p>${S.snack.text}</p>${S.snack.action?`<button data-act="${S.snack.action[1]}">${S.snack.action[0]}</button>`:''}</div>`;
   }
@@ -995,6 +1082,29 @@ const A = {
   askDelete(){ S.dialog='delete'; renderOverlay(); },
   closeDialog(el, ev){ if(ev && ev.target.closest('[data-stop]') && !ev.target.closest('[data-act="closeDialog"]')) return; S.dialog=null; renderOverlay(); const b=app.querySelector('[data-act="askDelete"]'); if(b) b.focus(); },
   confirmDelete(){ const n=S.history.length; S.history=[]; S.dialog=null; render(false); snack(`${n} buscas apagadas deste celular.`); },
+toggleSave(){ const idx=S.presIdx??0; const i=S.saved.findIndex(x=>x.id===S.med.id&&x.idx===idx);
+    if (i>=0){ S.saved.splice(i,1); render(false); snack('Removido de Meus remédios.'); }
+    else { S.saved.push({id:S.med.id, idx, last:todayIso(), remind:true}); render(false); snack('Salvo. A próxima retirada aparece em Meus remédios.', ['Ver','goMeus']); } },
+  goMeus(){ S.snack=null; go('meus',{reset:true}); },
+  pickedToday(el){ const it=S.saved[+el.dataset.i]; it.last=todayIso(); render(false); snack(`Anotado. Próxima retirada a partir de ${fmtD(addD(it.last,30))}.`); },
+  openSaved(el){ const it=S.saved[+el.dataset.i]; S.med=medById(it.id); S.presIdx=it.idx; S.brandFrom=null; go('resultado'); },
+  askRemove(el){ S.removeIdx=+el.dataset.i; S.dialog='remove'; renderOverlay(); },
+  confirmRemove(){ S.saved.splice(S.removeIdx,1); S.dialog=null; render(false); snack('Remédio removido deste celular.'); },
+  setGrupo(el){ S.grupo=el.dataset.g; render(false); const b=app.querySelector(`[data-g="${S.grupo}"]`); if(b) b.focus(); },
+  openNotif(){ S.notif=false; go('meus',{reset:true}); },
+  speak(){
+    const m=S.med, pr=m.apres[S.presIdx??0];
+    const txt=`${m.nome}, ${pr.d}, ${pr.f}. É gratuito no Farmácia Popular. Leve a receita médica dentro da validade e um documento com foto e CPF.`;
+    try{ if(!('speechSynthesis' in window)) throw 0; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(txt); u.lang='pt-BR'; u.rate=.95; speechSynthesis.speak(u); snack('Lendo o resultado em voz alta.', ['Parar','stopSpeak']); }
+    catch(e){ snack('Este aparelho não tem leitura em voz alta disponível.'); }
+  },
+  stopSpeak(){ try{ speechSynthesis.cancel(); }catch(e){} S.snack=null; renderOverlay(); },
+  share(){
+    const m=S.med, pr=m.apres[S.presIdx??0];
+    const txt=`${m.nome} ${pr.d} (${pr.f}) é GRATUITO no Farmácia Popular (lista de ${S.listDate}). Leve a receita dentro da validade e documento com foto e CPF. Consultado no EconoMed.`;
+    const fail=()=>snack('Não deu para copiar neste aparelho.');
+    try{ navigator.clipboard.writeText(txt).then(()=>snack('Texto copiado. Cole no WhatsApp ou onde quiser.'), fail); }catch(e){ fail(); }
+  },
   repeat(el){ S.query=el.dataset.q; go('busca'); doSearch(el.dataset.q); }
 };
 
@@ -1016,6 +1126,7 @@ document.getElementById('phone').addEventListener('input', ev=>{
 });
 document.getElementById('phone').addEventListener('change', ev=>{
   if (ev.target.name==='pres'){ S.presIdx=+ev.target.value; const b=document.getElementById('see-res'); if(b) b.disabled=false; }
+  if (ev.target.dataset && ev.target.dataset.remind!==undefined){ const it=S.saved[+ev.target.dataset.remind]; it.remind=ev.target.checked; snack(it.remind?`Lembrete ligado. Você recebe um aviso em ${fmtD(addD(it.last,27))}.`:'Lembrete desligado para este remédio.'); }
   if (ev.target.id==='save-h'){ S.saveHistory=ev.target.checked; snack(S.saveHistory?'Histórico ligado. Novas buscas ficam salvas neste celular.':'Histórico desligado. Novas buscas não serão salvas.'); }
 });
 document.getElementById('phone').addEventListener('submit', ev=>{
@@ -1038,6 +1149,7 @@ const FLOWS = [
   {t:'Primeiro acesso', items:[['Splash','splash'],['Boas-vindas','boasvindas'],['Privacidade','privacidade']]},
   {t:'Buscar remédio', items:[['Início','inicio'],['Busca e mais buscados','busca'],['Escolher dosagem','p-dosagem'],['Resultado gratuito','p-resultado'],['Nome comercial (Aradois)','p-aradois'],['Farmácias por CEP','farmacias']]},
   {t:'Receita', items:[['Câmera: foto','p-camfoto'],['Câmera: QR code','p-camqr'],['Lendo a receita','p-lendo'],['Remédios encontrados','p-receita']]},
+  {t:'Meus remédios', items:[['Meus remédios','meus'],['Lista por doença','lista'],['Notificação de lembrete','p-notif'],['Sem remédios salvos','p-vazio']]},
   {t:'Meus dados', items:[['Meus dados','dados'],['Política de privacidade','p-priv']]},
   {t:'Erros e avisos', err:true, items:[
     ['Você quis dizer?','e-typo'],['Campo vazio','e-vazio'],['Dosagem fora do programa','e-dosagem'],['Não gratuito','e-naogratis'],
@@ -1065,9 +1177,11 @@ const PRESET = {
   'e-cep':()=>{ S.stack=['inicio']; S.cepInput='0583-5'; S.cepErr='CEP inválido. Ele tem 8 números, como 05835-005.'; go('farmacias',{replace:true}); },
   'e-update':()=>{ sim.upd='fail'; syncSims(); go('inicio',{reset:true}); A.refreshList(); },
   'e-apagar':()=>{ if(!S.history.length) S.history=['Aradois','Losartana potássica','Metformina','Insulina']; go('dados',{reset:true}); A.askDelete(); },
+  'p-notif':()=>{ if(!S.saved.length) S.saved=[{id:'losartana', idx:1, last:daysAgo(27), remind:true}]; go('inicio',{reset:true}); S.notif=true; renderOverlay(); },
+  'p-vazio':()=>{ S.saved=[]; go('meus',{reset:true}); },
   'e-qr':()=>{ S.stack=['inicio','camera']; S.camMode='qr'; go('qrerro',{replace:true}); }
 };
-const PRESET_SCREEN = {'p-dosagem':'dosagem','p-resultado':'resultado','p-aradois':'resultado','p-camfoto':'camera','p-camqr':'camera','p-lendo':'lendo','p-receita':'receita','p-priv':'privacidade',
+const PRESET_SCREEN = {'p-notif':'inicio','p-vazio':'meus','p-dosagem':'dosagem','p-resultado':'resultado','p-aradois':'resultado','p-camfoto':'camera','p-camqr':'camera','p-lendo':'lendo','p-receita':'receita','p-priv':'privacidade',
   'e-typo':'busca','e-vazio':'busca','e-dosagem':'foraprograma','e-naogratis':'naoprograma','e-leitura':'leiturafalhou','e-vencida':'vencida','e-camneg':'camnegada','e-camind':'camindisp','e-offline':'inicio','e-cep':'farmacias','e-update':'inicio','e-apagar':'dados','e-qr':'qrerro'};
 let lastJump=null;
 function resetSim(k){ if(k==='cam'&&sim.cam!=='ok'){ sim.cam='ok'; syncSims(); } }
