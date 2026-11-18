@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Protótipo navegável do EconoMed: descubra se o seu remédio é gratuito no Farmácia Popular e onde retirar.">
+<title>EconoMed Protótipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: painel de navegação à esquerda + celular Android ao centro; no celular real, o app vem primeiro e o painel desce. */
+:root{
+  --font: "Atkinson Hyperlegible", "Roboto", "Segoe UI", system-ui, sans-serif;
+  /* página */
+  --page:#E9F0EC; --page-ink:#14221B; --panel:#FFFFFF; --muted:#4E5D55; --line:#D2DCD6; --bezel:#1B1F1D;
+  /* app: Verde Cuidado (Material 3) */
+  --surface:#FAFDFB; --surface-2:#EDF4EF; --surface-3:#E1EBE5; --on-surface:#16201B; --on-variant:#43514A;
+  --outline:#6F7C75; --outline-v:#C2CDC6;
+  --primary:#1A6B45; --on-primary:#FFFFFF; --primary-c:#B7EFCB; --on-primary-c:#00210F;
+  --navy:#1D3557; --on-navy:#FFFFFF; --navy-c:#D6E3FF; --on-navy-c:#0B1C33;
+  --amber:#F4B000; --on-amber:#2A1E00; --amber-c:#FFE6A3; --on-amber-c:#3A2A00;
+  --error:#B3261E; --on-error:#FFFFFF; --error-c:#F9DEDC; --on-error-c:#410E0B;
+  --scrim:rgba(10,20,15,.45);
+  --cam-bg:#0A0E0C; --cam-ink:#F2F5F3; --cam-dim:rgba(10,14,12,.62);
+  --s:1;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --page:#0D1411; --page-ink:#E2EAE5; --panel:#141C18; --muted:#A3B1A9; --line:#2A3530; --bezel:#050706;
+  --surface:#0F1512; --surface-2:#17201B; --surface-3:#202A24; --on-surface:#DEE5E0; --on-variant:#C0CBC4;
+  --outline:#8A968F; --outline-v:#3F4A44;
+  --primary:#8AD8A7; --on-primary:#00391D; --primary-c:#00522E; --on-primary-c:#B7EFCB;
+  --navy:#AAC7FF; --on-navy:#0B2546; --navy-c:#22406A; --on-navy-c:#D6E3FF;
+  --amber:#F7C548; --on-amber:#2A1E00; --amber-c:#594200; --on-amber-c:#FFE6A3;
+  --error:#F2B8B5; --on-error:#601410; --error-c:#8C1D18; --on-error-c:#F9DEDC;
+  --scrim:rgba(0,0,0,.6); color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --page:#0D1411; --page-ink:#E2EAE5; --panel:#141C18; --muted:#A3B1A9; --line:#2A3530; --bezel:#050706;
+  --surface:#0F1512; --surface-2:#17201B; --surface-3:#202A24; --on-surface:#DEE5E0; --on-variant:#C0CBC4;
+  --outline:#8A968F; --outline-v:#3F4A44;
+  --primary:#8AD8A7; --on-primary:#00391D; --primary-c:#00522E; --on-primary-c:#B7EFCB;
+  --navy:#AAC7FF; --on-navy:#0B2546; --navy-c:#22406A; --on-navy-c:#D6E3FF;
+  --amber:#F7C548; --on-amber:#2A1E00; --amber-c:#594200; --on-amber-c:#FFE6A3;
+  --error:#F2B8B5; --on-error:#601410; --error-c:#8C1D18; --on-error-c:#F9DEDC;
+  --scrim:rgba(0,0,0,.6); color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--page);color:var(--page-ink);font-family:var(--font);font-size:15px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:24px}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--navy);outline-offset:2px}
+a{color:inherit}
+
+.stage{display:grid;grid-template-columns:minmax(0,340px) auto;gap:40px;justify-content:center;align-items:start;max-width:1100px;margin:0 auto}
+/* ---------- painel ---------- */
+.panel{display:flex;flex-direction:column;gap:20px;min-width:0;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;padding-right:4px}
+.brandline{display:flex;gap:12px;align-items:center}
+.brandline h1{margin:0;font-size:24px;line-height:1.1;letter-spacing:-.01em}
+.brandline p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.intro{margin:0;color:var(--muted);max-width:60ch}
+.pgroup{display:flex;flex-direction:column;gap:6px}
+.pgroup h2{margin:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.jump{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 10px;min-height:36px;cursor:pointer;font-size:13.5px;text-align:left}
+.jump:hover{border-color:var(--outline)}
+.jump[aria-current="true"]{background:var(--primary-c);color:var(--on-primary-c);border-color:transparent;font-weight:700}
+.jump.err{border-style:dashed}
+.sims{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.sims label{display:flex;flex-direction:column;gap:2px;font-size:12.5px;color:var(--muted);min-width:0}
+.sims select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-height:36px;color:var(--page-ink);font-size:13.5px;width:100%}
+.seg-mini{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg-mini button{flex:1;border:0;background:var(--panel);padding:6px 4px;min-height:36px;cursor:pointer;font-size:13px}
+.seg-mini button[aria-pressed="true"]{background:var(--navy);color:var(--on-navy);font-weight:700}
+.note{font-size:12.5px;color:var(--muted);margin:0;border-top:1px solid var(--line);padding-top:12px}
+
+/* ---------- celular ---------- */
+.device{display:flex;justify-content:center}
+.phone{position:relative;width:392px;height:830px;border-radius:46px;background:var(--bezel);padding:11px;box-shadow:0 30px 60px -25px rgba(0,0,0,.45)}
+.screen{position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:var(--surface);color:var(--on-surface);display:flex;flex-direction:column}
+.statusbar{height:34px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 22px 0 26px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;position:relative;z-index:3}
+.statusbar .cam-dot{position:absolute;left:50%;top:9px;width:16px;height:16px;border-radius:50%;background:var(--bezel);transform:translateX(-50%)}
+.statusbar .sb-icons{display:flex;gap:6px;align-items:center}
+.statusbar svg{width:15px;height:15px;fill:currentColor}
+.gesture{height:22px;flex:none;display:flex;align-items:center;justify-content:center}
+.gesture span{width:108px;height:4px;border-radius:4px;background:var(--on-surface);opacity:.55}
+.app{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+.scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:4px 16px 24px;display:flex;flex-direction:column;gap:calc(16px*var(--s))}
+.screen.dark-ui{background:var(--cam-bg);color:var(--cam-ink)}
+.screen.dark-ui .gesture span{background:var(--cam-ink)}
+.screen.splash-ui{background:var(--primary);color:var(--on-primary)}
+.screen.splash-ui .gesture span{background:var(--on-primary)}
+
+/* tipografia do app */
+.app{font-size:calc(16px*var(--s));line-height:1.5}
+.t-display{font-size:calc(28px*var(--s));line-height:1.2;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.t-head{font-size:calc(22px*var(--s));line-height:1.25;font-weight:700;margin:0;text-wrap:balance}
+.t-title{font-size:calc(18px*var(--s));line-height:1.3;font-weight:700;margin:0}
+.t-body{font-size:calc(16px*var(--s));margin:0}
+.t-small{font-size:calc(14px*var(--s));margin:0;color:var(--on-variant)}
+.t-label{font-size:calc(13px*var(--s));font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin:0;color:var(--on-variant)}
+
+/* barra superior */
+.topbar{display:flex;align-items:center;gap:4px;padding:4px 8px;min-height:64px;flex:none}
+.topbar h1{font-size:calc(20px*var(--s));line-height:1.25;margin:0;font-weight:700;flex:1;min-width:0}
+.topbar h1:focus{outline:none}
+.logo-row{display:flex;align-items:center;gap:10px;flex:1;padding-left:8px}
+.logo-row b{font-size:calc(20px*var(--s))}
+.icon-btn{width:48px;height:48px;flex:none;border:0;background:transparent;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:inherit}
+.icon-btn:hover{background:var(--surface-3)}
+.icon-btn svg{width:24px;height:24px;fill:currentColor}
+.ic{width:calc(22px*var(--s));height:calc(22px*var(--s));fill:currentColor;flex:none}
+
+/* botões M3 */
+.btn{min-height:48px;border-radius:24px;border:0;padding:10px 24px;font-weight:700;font-size:calc(16px*var(--s));display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;text-decoration:none;text-align:center;line-height:1.25}
+.btn.filled{background:var(--primary);color:var(--on-primary)}
+.btn.tonal{background:var(--primary-c);color:var(--on-primary-c)}
+.btn.navy{background:var(--navy);color:var(--on-navy)}
+.btn.outlined{background:transparent;border:1px solid var(--outline);color:var(--primary)}
+.btn.text{background:transparent;color:var(--primary);padding:10px 12px}
+.btn.danger{background:var(--error);color:var(--on-error)}
+.btn.danger-out{background:transparent;border:1px solid var(--error);color:var(--error)}
+.btn:disabled{background:var(--surface-3);color:var(--on-variant);opacity:.7;cursor:not-allowed}
+.btn.block{width:100%}
+.btn .ic{width:calc(20px*var(--s));height:calc(20px*var(--s))}
+.stack{display:flex;flex-direction:column;gap:calc(10px*var(--s))}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* campo de busca */
+.field{display:flex;align-items:center;gap:4px;min-height:56px;border-radius:28px;background:var(--surface-3);padding:0 4px 0 16px;border:2px solid transparent}
+.field:focus-within{border-color:var(--primary)}
+.field[data-invalid="true"]{border-color:var(--error)}
+.field input{flex:1;min-width:0;border:0;background:transparent;font-size:calc(17px*var(--s));padding:12px 0;outline:none;color:var(--on-surface)}
+.field input::placeholder{color:var(--on-variant)}
+.fake-field{width:100%;cursor:text;text-align:left;color:var(--on-variant);font-size:calc(17px*var(--s))}
+.field-help{font-size:calc(14px*var(--s));margin:4px 16px 0;color:var(--on-variant)}
+.field-help.err{color:var(--error);display:flex;gap:6px;align-items:flex-start;font-weight:700}
+.out-field{display:flex;flex-direction:column;gap:4px}
+.out-field label{font-size:calc(14px*var(--s));font-weight:700}
+.out-field input{min-height:56px;border:1px solid var(--outline);border-radius:8px;padding:12px 16px;background:transparent;font-size:calc(17px*var(--s));font-variant-numeric:tabular-nums;color:var(--on-surface)}
+.out-field input:focus{outline:none;border:2px solid var(--primary)}
+.out-field input[aria-invalid="true"]{border:2px solid var(--error)}
+
+/* listas */
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.li{display:flex;align-items:center;gap:14px;min-height:56px;padding:8px 8px;border:0;background:transparent;width:100%;text-align:left;cursor:pointer;border-radius:12px;color:inherit;font-size:calc(16px*var(--s))}
+.li:hover{background:var(--surface-2)}
+.li.boxed{border:1px solid var(--outline-v);border-radius:14px;padding:12px 14px}
+.li.boxed .grow{gap:4px}
+.li .ic{color:var(--on-variant)}
+.li .grow{flex:1;min-width:0;display:flex;flex-direction:column}
+.li .sub{font-size:calc(14px*var(--s));color:var(--on-variant)}
+.mais li{border-bottom:1px solid var(--outline-v)}
+.divider{height:1px;background:var(--outline-v);border:0;margin:0}
+
+/* cartões */
+.card{background:var(--surface-2);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:calc(10px*var(--s))}
+.card.out{background:transparent;border:1px solid var(--outline-v)}
+.card.hero{background:var(--primary-c);color:var(--on-primary-c)}
+.card.hero .t-small{color:var(--on-primary-c)}
+.card.navy{background:var(--navy-c);color:var(--on-navy-c)}
+.card.navy .t-small{color:var(--on-navy-c)}
+.card.warn{background:var(--amber-c);color:var(--on-amber-c)}
+.card.warn .t-small{color:var(--on-amber-c)}
+.card.errc{background:var(--error-c);color:var(--on-error-c)}
+.card.errc .t-small{color:var(--on-error-c)}
+.banner{display:flex;gap:12px;align-items:flex-start;border-radius:12px;padding:12px 14px;font-size:calc(15px*var(--s))}
+.banner p{margin:0}
+.banner.info{background:var(--navy-c);color:var(--on-navy-c)}
+.banner.warn{background:var(--amber-c);color:var(--on-amber-c)}
+.banner.err{background:var(--error-c);color:var(--on-error-c)}
+
+/* status */
+.status{display:inline-flex;align-items:center;gap:8px;border-radius:10px;padding:8px 12px;font-weight:700;font-size:calc(16px*var(--s));line-height:1.25}
+.status.free{background:var(--primary);color:var(--on-primary)}
+.status.no{background:var(--error-c);color:var(--on-error-c)}
+.chip{display:inline-flex;align-items:center;gap:4px;border-radius:8px;padding:2px 8px;font-size:calc(13px*var(--s));font-weight:700;line-height:1.5}
+.chip.free{background:var(--primary-c);color:var(--on-primary-c)}
+.chip.no{background:var(--surface-3);color:var(--on-variant);border:1px solid var(--outline-v)}
+.chip .ic{width:calc(16px*var(--s));height:calc(16px*var(--s))}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:calc(15px*var(--s))}
+.kv dt{color:var(--on-variant)}
+.kv dd{margin:0;font-weight:700;min-width:0}
+
+/* opções de dosagem */
+.opt{display:flex;gap:14px;align-items:center;border:1px solid var(--outline-v);border-radius:14px;padding:12px 14px;min-height:64px;cursor:pointer}
+.opt:has(input:checked){border:2px solid var(--primary);background:var(--surface-2)}
+.opt input{width:22px;height:22px;accent-color:var(--primary);flex:none;margin:0}
+.opt .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.opt b{font-size:calc(18px*var(--s))}
+
+/* farmácias */
+.pharm{display:flex;flex-direction:column;gap:6px;border:1px solid var(--outline-v);border-radius:14px;padding:14px}
+.pharm .top{display:flex;gap:10px;align-items:flex-start}
+.pharm .top .ic{color:var(--primary);margin-top:2px}
+.pharm .dist{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:calc(14px*var(--s))}
+.pharm a{align-self:flex-start}
+.links{display:flex;flex-direction:column;gap:8px}
+.extlink{display:flex;align-items:center;gap:12px;min-height:56px;border:1px solid var(--outline-v);border-radius:14px;padding:8px 14px;text-decoration:none;color:var(--on-surface)}
+.extlink .grow{flex:1;display:flex;flex-direction:column;min-width:0}
+.extlink .ic{color:var(--primary)}
+.src{font-size:calc(13px*var(--s));color:var(--on-variant);margin:0}
+
+/* passos (sequência real) */
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:s}
+.steps li{display:flex;gap:12px;align-items:flex-start;counter-increment:s}
+.steps li::before{content:counter(s);flex:none;width:calc(28px*var(--s));height:calc(28px*var(--s));border-radius:50%;background:var(--navy);color:var(--on-navy);display:grid;place-items:center;font-weight:700;font-size:calc(14px*var(--s))}
+
+/* nav inferior */
+.navbar{flex:none;display:flex;background:var(--surface-2);padding:8px 0 4px;border-top:1px solid var(--outline-v)}
+.navbar button{flex:1;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;cursor:pointer;font-size:calc(12.5px*var(--s));font-weight:700;color:var(--on-variant)}
+.navbar .pill{width:60px;height:30px;border-radius:15px;display:grid;place-items:center}
+.navbar .pill svg{width:24px;height:24px;fill:currentColor}
+.navbar button[aria-current="page"]{color:var(--on-surface)}
+.navbar button[aria-current="page"] .pill{background:var(--primary-c);color:var(--on-primary-c)}
+
+/* splash e onboarding */
+.splash{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--primary);color:var(--on-primary);text-align:center;padding:24px}
+.splash .wordmark{font-size:calc(34px*var(--s));font-weight:700;letter-spacing:-.01em}
+.splash p{margin:0;opacity:.92;font-size:calc(16px*var(--s))}
+.splash .pulse{animation:pop .9s cubic-bezier(.2,.8,.2,1.2) both}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.splash .bar{width:120px;height:4px;border-radius:2px;background:rgba(255,255,255,.25);overflow:hidden;margin-top:24px}
+.splash .bar i{display:block;height:100%;width:40%;background:var(--amber);animation:slide 1.1s ease-in-out infinite}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(260%)}}
+.onb-art{display:grid;place-items:center;padding:24px 0 8px}
+.onb-art .disc{width:160px;height:160px;border-radius:50%;background:var(--primary-c);display:grid;place-items:center;position:relative}
+.onb-art .disc::after{content:"";position:absolute;right:6px;top:10px;width:38px;height:38px;border-radius:50%;background:var(--amber)}
+.onb-art .disc.lock{background:var(--navy-c)}
+.onb-art .disc.lock svg{width:72px;height:72px;fill:var(--navy)}
+.dots{display:flex;gap:6px;align-items:center}
+.dots i{width:8px;height:8px;border-radius:4px;background:var(--outline-v)}
+.dots i.on{width:24px;background:var(--primary)}
+.priv{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.priv li{display:flex;gap:12px;align-items:flex-start}
+.priv li .ic{color:var(--primary);margin-top:2px}
+.bottom-actions{flex:none;padding:12px 16px 16px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+
+/* câmera */
+.cam{flex:1;display:flex;flex-direction:column;background:var(--cam-bg);color:var(--cam-ink);min-height:0}
+.cam .topbar .icon-btn:hover{background:rgba(255,255,255,.12)}
+.seg{display:flex;margin:0 16px;border:1px solid rgba(255,255,255,.5);border-radius:24px;overflow:hidden;flex:none}
+.seg button{flex:1;min-height:48px;border:0;background:transparent;color:var(--cam-ink);font-weight:700;font-size:calc(15px*var(--s));display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:#CDEFD9;color:#00210F}
+.seg button .ic{width:18px;height:18px}
+.viewfinder{flex:1;min-height:0;margin:14px 16px 0;border-radius:18px;position:relative;overflow:hidden;background:
+  radial-gradient(120% 80% at 50% 40%, #3a4a42 0%, #1b231f 60%, #0d1210 100%)}
+.paper{position:absolute;left:16%;right:16%;top:12%;bottom:16%;background:#F3F1EA;border-radius:4px;transform:rotate(-3deg);box-shadow:0 12px 30px rgba(0,0,0,.5);padding:12% 10%;display:flex;flex-direction:column;gap:7%}
+.paper i{display:block;height:7px;border-radius:3px;background:#9aa39e}
+.paper i.s{width:55%}.paper i.m{width:80%}.paper i.b{background:#3d4b70;width:70%;height:9px}
+.guide{position:absolute;inset:7% 9% 11%;border:3px solid rgba(255,255,255,.85);border-radius:14px}
+.guide.qr{inset:auto;left:50%;top:44%;width:58%;aspect-ratio:1;max-width:100%;transform:translate(-50%,-50%);border-color:#F7C548}
+.qr-code{position:absolute;left:50%;top:44%;width:42%;aspect-ratio:1;max-width:100%;transform:translate(-50%,-50%);background:
+  conic-gradient(#111 0 25%, #fff 0 50%, #111 0 75%, #fff 0) 0 0/22% 22%;border:10px solid #fff;outline:6px solid #111;opacity:.9}
+.cam-hint{position:absolute;left:12px;right:12px;bottom:12px;background:var(--cam-dim);color:var(--cam-ink);border-radius:10px;padding:8px 12px;font-size:calc(14px*var(--s));text-align:center}
+.shutter-row{flex:none;display:flex;align-items:center;justify-content:center;padding:18px 16px 18px;gap:24px}
+.shutter{width:76px;height:76px;border-radius:50%;border:4px solid #fff;background:transparent;padding:5px;cursor:pointer}
+.shutter span{display:block;width:100%;height:100%;border-radius:50%;background:#fff}
+.shutter:active span{transform:scale(.92)}
+
+/* leitura */
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;padding:24px}
+.spinner{width:56px;height:56px;border-radius:50%;border:5px solid var(--primary-c);border-top-color:var(--primary);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.prog{width:200px;height:6px;border-radius:3px;background:var(--surface-3);overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--primary);animation:fill 1.6s ease-out forwards}
+@keyframes fill{to{width:100%}}
+.state-ic{width:88px;height:88px;border-radius:50%;display:grid;place-items:center;flex:none}
+.state-ic svg{width:44px;height:44px;fill:currentColor}
+.state-ic.err{background:var(--error-c);color:var(--error)}
+.state-ic.warn{background:var(--amber-c);color:var(--on-amber-c)}
+.state-ic.info{background:var(--navy-c);color:var(--navy)}
+.state-ic.ok{background:var(--primary-c);color:var(--primary)}
+.tips{text-align:left;margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+
+/* overlay */
+.overlay{position:absolute;inset:0;pointer-events:none;z-index:10}
+.scrim{position:absolute;inset:0;background:var(--scrim);pointer-events:auto;display:flex;align-items:center;justify-content:center;padding:24px}
+.dialog{background:var(--surface-2);color:var(--on-surface);border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:16px;max-width:320px;width:100%}
+.dialog h2{margin:0;font-size:calc(22px*var(--s));line-height:1.25}
+.dialog .ic-top{align-self:center;color:var(--error);width:28px;height:28px}
+.dialog .acts{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.snack{position:absolute;left:12px;right:12px;bottom:92px;background:var(--on-surface);color:var(--surface);border-radius:8px;padding:12px 8px 12px 16px;display:flex;align-items:center;gap:8px;pointer-events:auto;box-shadow:0 6px 18px rgba(0,0,0,.25);font-size:calc(15px*var(--s));animation:up .2s ease-out}
+.snack p{margin:0;flex:1}
+.snack button{border:0;background:transparent;color:var(--primary-c);font-weight:700;min-height:48px;padding:0 10px;cursor:pointer}
+@keyframes up{from{transform:translateY(12px);opacity:0}}
+
+.switch{position:relative;width:52px;height:32px;flex:none}
+.switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;width:100%;height:100%}
+.switch span{position:absolute;inset:0;border-radius:16px;background:var(--surface-3);border:2px solid var(--outline);transition:.15s}
+.switch span::after{content:"";position:absolute;left:4px;top:50%;width:16px;height:16px;border-radius:50%;background:var(--outline);transform:translateY(-50%);transition:.15s}
+.switch input:checked + span{background:var(--primary);border-color:var(--primary)}
+.switch input:checked + span::after{left:22px;width:24px;height:24px;background:var(--on-primary)}
+.switch input:focus-visible + span{outline:3px solid var(--navy);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
+
+@media (max-width: 860px){
+  .stage{grid-template-columns:minmax(0,1fr);gap:28px}
+  .device{order:-1}
+  .panel{position:static;max-height:none;overflow:visible}
+}
+@media (max-width: 460px){
+  body{padding-block:12px}
+  .phone{width:100%;height:min(830px, calc(100svh - 24px));padding:0;border-radius:24px;background:transparent;box-shadow:0 0 0 1px var(--line)}
+  .screen{border-radius:24px}
+  .statusbar .cam-dot{display:none}
+}
+</style>
+
+</head>
+<body>
+<div class="stage">
+  <aside class="panel" aria-label="Mapa do protótipo">
+    <div class="brandline">
+      <svg width="48" height="48" viewBox="0 0 48 48" aria-hidden="true"><use href="#logo"/></svg>
+      <div><h1>EconoMed</h1><p>Protótipo navegável · Android</p></div>
+    </div>
+    <p class="intro">Use o celular ao lado como se fosse o app. Para ir direto a uma tela ou a um erro, toque nos botões abaixo.</p>
+    <div id="flows"></div>
+    <div class="pgroup">
+      <h2>Simular situações</h2>
+      <div class="sims">
+        <label>Conexão<select id="sim-net"><option value="on">Com internet</option><option value="off">Sem internet</option></select></label>
+        <label>Câmera<select id="sim-cam"><option value="ok">Permitida</option><option value="denied">Permissão negada</option><option value="none">Indisponível</option></select></label>
+        <label>Foto da receita<select id="sim-ocr"><option value="ok">Leitura certa</option><option value="fail">Falha na leitura</option><option value="expired">Receita vencida</option></select></label>
+        <label>QR code<select id="sim-qr"><option value="ok">QR válido</option><option value="fail">QR inválido</option></select></label>
+        <label>Atualizar lista<select id="sim-upd"><option value="ok">Dá certo</option><option value="fail">Falha</option></select></label>
+        <label>Tema<select id="sim-theme"><option value="">Do sistema</option><option value="light">Claro</option><option value="dark">Escuro</option></select></label>
+      </div>
+      <div class="pgroup" style="margin-top:6px">
+        <h2 id="font-lbl">Tamanho da fonte do Android</h2>
+        <div class="seg-mini" role="group" aria-labelledby="font-lbl" id="font-seg">
+          <button type="button" data-font="1" aria-pressed="true">100%</button>
+          <button type="button" data-font="1.3" aria-pressed="false">130%</button>
+          <button type="button" data-font="1.6" aria-pressed="false">160%</button>
+        </div>
+      </div>
+    </div>
+    <p class="note">Remédios, dosagens e indicações seguem a lista do Farmácia Popular. Os endereços das farmácias são exemplos para o protótipo; no app, eles vêm da lista oficial “Aqui Tem Farmácia Popular”. Preços não ficam no app: os links abrem o site de cada rede.</p>
+  </aside>
+
+  <main class="device">
+    <div class="phone" id="phone">
+      <div class="screen" id="screen">
+        <div class="statusbar" aria-hidden="true">
+          <span id="clock">17:22</span><span class="cam-dot"></span>
+          <span class="sb-icons" id="sb-icons"></span>
+        </div>
+        <div class="app" id="app" aria-live="off"></div>
+        <div class="gesture" aria-hidden="true"><span></span></div>
+        <div class="overlay" id="overlay"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="logo" viewBox="0 0 48 48">
+      <rect x="17" y="4" width="14" height="40" rx="4" fill="#1A6B45"/>
+      <rect x="4" y="17" width="40" height="14" rx="4" fill="#1A6B45"/>
+      <circle cx="35" cy="13" r="9" fill="#F4B000" stroke="#FFFFFF" stroke-width="2.5"/>
+      <path d="M31.5 16.5l7-7" stroke="#2A1E00" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="32" cy="10.5" r="1.6" fill="#2A1E00"/><circle cx="38" cy="15.5" r="1.6" fill="#2A1E00"/>
+    </symbol>
+  </defs>
+</svg>
+
+<script>
+(function(){
+const LIST_DATE = '10/11/2026';
+const P = {
+  search:'M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+  back:'M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z',
+  camera:'M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4zM9 2 7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z',
+  check:'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z',
+  pin:'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z',
+  ext:'M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z',
+  err:'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z',
+  info:'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z',
+  wifioff:'M23.64 7c-.45-.34-4.93-4-11.64-4-1.5 0-2.89.19-4.15.48L18.18 13.8 23.64 7zm-6.6 8.22L3.27 1.44 2 2.72l2.05 2.06C1.91 5.76.59 6.82.36 7l11.63 14.49.01.01.01-.01 3.9-4.86 3.32 3.32 1.27-1.27-3.46-3.46z',
+  wifi:'M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.24 4.24 0 0 0-6 0zm-4-4 2 2a7.07 7.07 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z',
+  battery:'M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z',
+  refresh:'M17.65 6.35A7.96 7.96 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z',
+  del:'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z',
+  lock:'M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z',
+  close:'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
+  qr:'M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM13 13h2v2h-2zM15 15h2v2h-2zM13 17h2v2h-2zM17 17h2v2h-2zM19 19h2v2h-2zM15 19h2v2h-2zM17 13h2v2h-2zM19 15h2v2h-2z',
+  history:'M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.95 8.95 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z',
+  home:'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z',
+  shield:'M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z',
+  doc:'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z',
+  chev:'M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z',
+  nocam:'M21 6.5l-4 4V7c0-.55-.45-1-1-1H9.82L21 17.18V6.5zM3.27 2 2 3.27 4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.21 0 .39-.08.54-.18L19.73 21 21 19.73 3.27 2z',
+  person:'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
+  phone:'M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14z',
+  pill:'M4.22 11.29l7.07-7.07a5 5 0 0 1 7.07 7.07l-7.07 7.07a5 5 0 0 1-7.07-7.07zm1.41 1.41a3 3 0 0 0 4.24 4.24l3.54-3.53-4.25-4.24-3.53 3.53z',
+  calendar:'M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-2 .9-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h5v5H7z'
+};
+const ic = (n, cls='ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${P[n]}"/></svg>`;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+
+/* ---------- Dados: lista do Farmácia Popular ---------- */
+const MEDS = [
+  {id:'losartana', chave:'losartana', nome:'Losartana potássica', indic:'Hipertensão (pressão alta)', marcas:['Aradois','Cozaar'],
+    apres:[{d:'25 mg',f:'comprimido',p:false},{d:'50 mg',f:'comprimido',p:true},{d:'100 mg',f:'comprimido',p:false},{d:'50 mg + hidroclorotiazida 12,5 mg',f:'comprimido',p:false}]},
+  {id:'metformina', chave:'metformina', nome:'Cloridrato de metformina', indic:'Diabetes', marcas:['Glifage'],
+    apres:[{d:'500 mg',f:'comprimido',p:true},{d:'500 mg ação prolongada',f:'comprimido',p:true},{d:'850 mg',f:'comprimido',p:true},{d:'1 g',f:'comprimido',p:false}]},
+  {id:'insulina', chave:'insulina', nome:'Insulina humana', indic:'Diabetes', marcas:['Humulin','Novolin'],
+    apres:[{d:'NPH 100 UI/mL',f:'suspensão injetável',p:true},{d:'Regular 100 UI/mL',f:'solução injetável',p:true}]},
+  {id:'ipratropio', chave:'ipratropio', nome:'Brometo de ipratrópio', indic:'Asma', marcas:['Atrovent'],
+    apres:[{d:'0,02 mg/dose',f:'aerossol',p:true},{d:'0,25 mg/mL',f:'solução para inalação',p:true}]},
+  {id:'atenolol', chave:'atenolol', nome:'Atenolol', indic:'Hipertensão (pressão alta)', marcas:['Atenol'], apres:[{d:'25 mg',f:'comprimido',p:true}]},
+  {id:'anlodipino', chave:'anlodipino', nome:'Besilato de anlodipino', indic:'Hipertensão (pressão alta)', marcas:['Norvasc'], apres:[{d:'5 mg',f:'comprimido',p:true}]},
+  {id:'captopril', chave:'captopril', nome:'Captopril', indic:'Hipertensão (pressão alta)', marcas:['Capoten'], apres:[{d:'25 mg',f:'comprimido',p:true}]},
+  {id:'enalapril', chave:'enalapril', nome:'Maleato de enalapril', indic:'Hipertensão (pressão alta)', marcas:['Renitec'], apres:[{d:'10 mg',f:'comprimido',p:true}]},
+  {id:'hidroclorotiazida', chave:'hidroclorotiazida', nome:'Hidroclorotiazida', indic:'Hipertensão (pressão alta)', marcas:['Clorana'], apres:[{d:'25 mg',f:'comprimido',p:true}]},
+  {id:'propranolol', chave:'propranolol', nome:'Cloridrato de propranolol', indic:'Hipertensão (pressão alta)', marcas:['Propranolol Ayerst'], apres:[{d:'40 mg',f:'comprimido',p:true}]},
+  {id:'espironolactona', chave:'espironolactona', nome:'Espironolactona', indic:'Hipertensão (pressão alta)', marcas:['Aldactone'], apres:[{d:'25 mg',f:'comprimido',p:true}]},
+  {id:'glibenclamida', chave:'glibenclamida', nome:'Glibenclamida', indic:'Diabetes', marcas:['Daonil'], apres:[{d:'5 mg',f:'comprimido',p:true}]},
+  {id:'dapagliflozina', chave:'dapagliflozina', nome:'Dapagliflozina', indic:'Diabetes com doença cardiovascular', marcas:['Forxiga'],
+    nota:'No programa, é gratuita para pessoas a partir de 65 anos com diabetes tipo 2 e doença cardiovascular.', apres:[{d:'10 mg',f:'comprimido',p:true}]},
+  {id:'beclometasona', chave:'beclometasona', nome:'Dipropionato de beclometasona', indic:'Asma', marcas:['Clenil'],
+    apres:[{d:'50 mcg/dose',f:'aerossol',p:true},{d:'200 mcg/dose',f:'aerossol',p:true},{d:'250 mcg/dose',f:'aerossol',p:true}]},
+  {id:'salbutamol', chave:'salbutamol', nome:'Sulfato de salbutamol', indic:'Asma', marcas:['Aerolin'],
+    apres:[{d:'100 mcg/dose',f:'aerossol',p:true},{d:'5 mg/mL',f:'solução para inalação',p:true}]},
+  {id:'budesonida', chave:'budesonida', nome:'Budesonida', indic:'Rinite', marcas:['Busonid'],
+    apres:[{d:'32 mcg/dose',f:'spray nasal',p:true},{d:'50 mcg/dose',f:'spray nasal',p:true}]},
+  {id:'sinvastatina', chave:'sinvastatina', nome:'Sinvastatina', indic:'Colesterol alto (dislipidemia)', marcas:['Zocor'],
+    apres:[{d:'10 mg',f:'comprimido',p:true},{d:'20 mg',f:'comprimido',p:true},{d:'40 mg',f:'comprimido',p:true}]},
+  {id:'alendronato', chave:'alendronato', nome:'Alendronato de sódio', indic:'Osteoporose', marcas:['Fosamax'], apres:[{d:'70 mg',f:'comprimido',p:true}]},
+  {id:'carbidopa', chave:'carbidopa', nome:'Carbidopa + levodopa', indic:'Doença de Parkinson', marcas:['Sinemet'], apres:[{d:'25 mg + 250 mg',f:'comprimido',p:true}]},
+  {id:'timolol', chave:'timolol', nome:'Maleato de timolol', indic:'Glaucoma', marcas:['Timoptol'],
+    apres:[{d:'2,5 mg/mL',f:'colírio',p:true},{d:'5 mg/mL',f:'colírio',p:true}]}
+];
+const FORA = [
+  {id:'dipirona', nome:'Dipirona', marcas:['Novalgina'], tipo:'analgésico e antitérmico'},
+  {id:'ibuprofeno', nome:'Ibuprofeno', marcas:['Advil','Alivium'], tipo:'anti-inflamatório'},
+  {id:'omeprazol', nome:'Omeprazol', marcas:['Losec'], tipo:'protetor do estômago'},
+  {id:'paracetamol', nome:'Paracetamol', marcas:['Tylenol'], tipo:'analgésico e antitérmico'},
+  {id:'amoxicilina', nome:'Amoxicilina', marcas:['Amoxil'], tipo:'antibiótico'}
+];
+const MAIS = ['losartana','metformina','dipirona','insulina','ipratropio','atenolol','sinvastatina','dapagliflozina'];
+const FARM = [
+  {nome:'Farmácia Itapecerica', end:'Estr. de Itapecerica, 2801, Loja A, Vila Maracanã, São Paulo – SP, 05835-005', dist:'0,4 km'},
+  {nome:'Drogaria Maracanã', end:'R. Thereza Mouco de Oliveira, 56, Vila Maracanã, São Paulo – SP, 05846-420', dist:'0,9 km'},
+  {nome:'Drogaria Vila Franca', end:'Av. Sílvio Ribeiro Aragão, 145, Vila Franca, São Paulo – SP, 05776-510', dist:'1,2 km'}
+];
+const medById = id => MEDS.find(m => m.id===id);
+const foraById = id => FORA.find(m => m.id===id);
+
+/* ---------- Estado ---------- */
+const sim = {net:'on', cam:'ok', ocr:'ok', qr:'ok', upd:'ok', font:1};
+const S = {
+  screen:'splash', stack:[], firstRun:true,
+  query:'', searchErr:null, suggestion:null, multi:null, notFound:null,
+  med:null, presIdx:null, brandFrom:null, fora:null,
+  cep:'05835-005', cepErr:null,
+  camMode:'foto', privFromDados:false,
+  saveHistory:true, history:['Aradois','Losartana potássica','Metformina','Insulina'],
+  dialog:null, snack:null, listDate:LIST_DATE, recipeSource:'foto'
+};
+
+const app = document.getElementById('app');
+const overlay = document.getElementById('overlay');
+const screenEl = document.getElementById('screen');
+
+/* ---------- Pedaços reutilizáveis ---------- */
+const topbar = (title, opts={}) => `
+  <header class="topbar">
+    ${opts.noBack ? '' : `<button class="icon-btn" data-act="back" aria-label="Voltar">${ic('back')}</button>`}
+    <h1 tabindex="-1" data-focus>${title}</h1>
+    ${opts.right||''}
+  </header>`;
+const navbar = cur => `
+  <nav class="navbar" aria-label="Navegação principal">
+    <button data-nav="inicio" ${cur==='inicio'?'aria-current="page"':''}><span class="pill">${ic('home')}</span>Início</button>
+    <button data-nav="camera" ${cur==='camera'?'aria-current="page"':''}><span class="pill">${ic('camera')}</span>Receita</button>
+    <button data-nav="dados" ${cur==='dados'?'aria-current="page"':''}><span class="pill">${ic('shield')}</span>Meus dados</button>
+  </nav>`;
+const listDateLine = () => `<p class="src">${ic('calendar','ic')} Lista do Farmácia Popular atualizada em <b>${S.listDate}</b></p>`;
+const presLabel = (pr) => `${pr.d} · ${pr.f}`;
+const priceLinks = (term) => {
+  const q = encodeURIComponent(term);
+  const L = [
+    ['Drogasil', `https://www.drogasil.com.br/search?w=${q}`],
+    ['Droga Raia', `https://www.drogaraia.com.br/search?w=${q}`],
+    ['Pague Menos', `https://www.paguemenos.com.br/${q}?_q=${q}&map=ft`]
+  ];
+  return `<div class="links">${L.map(([n,u])=>`
+    <a class="extlink" href="${u}" target="_blank" rel="noopener">
+      <span class="grow"><b>${n}</b><span class="t-small">Ver preço no site</span></span>${ic('ext')}<span class="sr">(abre o site em outra aba)</span>
+    </a>`).join('')}</div>
+    <p class="src">Os preços mudam todo dia, por isso o EconoMed não mostra valores. Confira no site de cada farmácia.</p>`;
+};
+const pharmCard = f => `
+  <article class="pharm">
+    <div class="top">${ic('pin')}<div class="grow"><b>${f.nome}</b><p class="t-small">${f.end}</p></div><span class="dist">${f.dist}</span></div>
+    <a class="btn text" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(f.end)}" target="_blank" rel="noopener">Como chegar ${ic('ext')}</a>
+  </article>`;
+const offlineCard = (what) => `
+  <div class="card errc" role="status">
+    <div class="row">${ic('wifioff')}<b>Sem internet</b></div>
+    <p class="t-small">${what} Conecte-se ao Wi-Fi ou aos dados móveis e tente de novo.</p>
+    <button class="btn outlined" data-act="retryNet">${ic('refresh')} Tentar de novo</button>
+  </div>`;
+
+/* ---------- Telas ---------- */
+const T = {};
+
+T.splash = () => `
+  <div class="splash">
+    <svg class="pulse" width="112" height="112" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="24" fill="#FFFFFF"/><g transform="translate(6 6) scale(.75)"><use href="#logo"/></g></svg>
+    <div class="wordmark" tabindex="-1" data-focus role="heading" aria-level="1">EconoMed</div>
+    <p>Remédio de graça, sem complicação</p>
+    <div class="bar" aria-label="Carregando"><i></i></div>
+  </div>`;
+
+T.boasvindas = () => `
+  <div class="scroll" style="padding-top:24px">
+    <div class="onb-art"><div class="disc"><svg width="96" height="96" viewBox="0 0 48 48" aria-hidden="true"><use href="#logo"/></svg></div></div>
+    <div class="dots" aria-label="Passo 1 de 2"><i class="on"></i><i></i></div>
+    <h1 class="t-display" tabindex="-1" data-focus>Descubra se o seu remédio é de graça</h1>
+    <p class="t-body">O EconoMed confere a lista oficial do Farmácia Popular e mostra onde retirar o remédio perto de você.</p>
+    <ol class="steps t-body">
+      <li>Digite o nome do remédio ou fotografe a receita.</li>
+      <li>Veja se a dosagem da sua receita é gratuita.</li>
+      <li>Retire numa farmácia credenciada com receita, documento com foto e CPF.</li>
+    </ol>
+  </div>
+  <div class="bottom-actions">
+    <button class="btn filled block" data-go="privacidade">Continuar</button>
+  </div>`;
+
+T.privacidade = () => `
+  ${S.privFromDados ? topbar('Privacidade') : ''}
+  <div class="scroll" style="${S.privFromDados?'':'padding-top:24px'}">
+    <div class="onb-art"><div class="disc lock">${ic('lock','')}</div></div>
+    ${S.privFromDados ? '' : '<div class="dots" aria-label="Passo 2 de 2"><i></i><i class="on"></i></div>'}
+    <h${S.privFromDados?'2':'1'} class="t-display" ${S.privFromDados?'':'tabindex="-1" data-focus'}>Seus dados ficam com você</h${S.privFromDados?'2':'1'}>
+    <ul class="priv t-body">
+      <li>${ic('person')}<span><b>Sem login e sem cadastro.</b> Você não informa nome, CPF nem e-mail.</span></li>
+      <li>${ic('phone')}<span><b>Suas buscas ficam só neste celular.</b> Você pode apagar quando quiser em Meus dados.</span></li>
+      <li>${ic('camera')}<span><b>A foto da receita é lida no próprio celular</b> e não é enviada para nenhum servidor.</span></li>
+      <li>${ic('pin')}<span><b>O CEP serve só para achar farmácias perto de você</b> e fica guardado neste celular.</span></li>
+      <li>${ic('shield')}<span>Seguimos a Lei Geral de Proteção de Dados (LGPD, Lei nº 13.709/2018).</span></li>
+    </ul>
+    <div class="banner info">${ic('info')}<p>O EconoMed informa, mas não substitui o seu médico ou farmacêutico.</p></div>
+  </div>
+  ${S.privFromDados ? '' : `<div class="bottom-actions"><button class="btn filled block" data-act="finishOnb">Entendi, começar</button></div>`}`;
+
+T.inicio = () => `
+  <header class="topbar">
+    <div class="logo-row"><svg width="36" height="36" viewBox="0 0 48 48" aria-hidden="true"><use href="#logo"/></svg><b>EconoMed</b></div>
+  </header>
+  <div class="scroll">
+    ${sim.net==='off' ? `<div class="banner warn" role="status">${ic('wifioff')}<p><b>Você está sem internet.</b> A busca continua funcionando com a lista salva de ${S.listDate}. Para ver farmácias perto de você, conecte-se.</p></div>` : ''}
+    <h1 class="t-display" tabindex="-1" data-focus>Seu remédio pode ser de graça</h1>
+    <p class="t-body">Busque pelo nome que está na receita ou na caixa.</p>
+    <div class="field" style="margin-top:4px">
+      ${ic('search')}
+      <button class="fake-field" data-go="busca" style="border:0;background:transparent;min-height:52px;padding:0 8px">Digite o nome do remédio</button>
+    </div>
+    <div class="card navy">
+      <p class="t-title">Tem a receita em mãos?</p>
+      <p class="t-small">Fotografe a receita de papel ou leia o QR code da receita digital. A leitura acontece no seu celular.</p>
+      <div class="stack">
+        <button class="btn navy block" data-act="openCam" data-mode="foto">${ic('camera')} Fotografar a receita</button>
+        <button class="btn outlined block" data-act="openCam" data-mode="qr" style="color:var(--on-navy-c);border-color:var(--on-navy-c)">${ic('qr')} Ler QR code</button>
+      </div>
+    </div>
+    <div class="stack">
+      <p class="t-label">Para retirar de graça, leve</p>
+      <ul class="priv t-body">
+        <li>${ic('doc')}<span>Receita médica dentro da validade, com o nome do remédio e a dosagem</span></li>
+        <li>${ic('person')}<span>Documento oficial com foto e o número do CPF</span></li>
+      </ul>
+    </div>
+    <div class="row" style="justify-content:space-between;flex-wrap:wrap">
+      ${listDateLine()}
+      <button class="btn text" data-act="refreshList">${ic('refresh')} Atualizar</button>
+    </div>
+  </div>
+  ${navbar('inicio')}`;
+
+T.busca = () => `
+  <header class="topbar">
+    <button class="icon-btn" data-act="back" aria-label="Voltar">${ic('back')}</button>
+    <form class="field" id="search-form" role="search" style="flex:1;margin-right:8px" data-invalid="${S.searchErr==='empty'}" novalidate>
+      <label for="q" class="sr">Nome do remédio</label>
+      <input id="q" name="q" type="search" autocomplete="off" enterkeyhint="search" placeholder="Ex.: losartana, Aradois" value="${esc(S.query)}" aria-describedby="q-help" ${S.searchErr==='empty'?'aria-invalid="true"':''}>
+      <button class="icon-btn" type="submit" aria-label="Buscar">${ic('search')}</button>
+    </form>
+  </header>
+  <div class="scroll" id="search-body">${searchBody()}</div>`;
+
+function searchBody(){
+  let h = `<div id="q-help" aria-live="polite">`;
+  if (S.searchErr==='empty') h += `<p class="field-help err">${ic('err')}<span>Digite o nome do remédio para buscar. Pode ser o nome da caixa, como Aradois.</span></p>`;
+  h += `</div>`;
+  if (S.suggestion){
+    const m = S.suggestion;
+    h += `<div class="card warn" role="status">
+      <p class="t-small">Não encontramos “${esc(S.notFound)}”.</p>
+      <p class="t-title">Você quis dizer <span style="text-decoration:underline">${m.nome}</span>?</p>
+      <button class="btn filled" data-act="pickMed" data-id="${m.id}">Sim, buscar ${m.nome}</button>
+    </div>`;
+  } else if (S.notFound){
+    h += `<div class="card errc" role="status">
+      <p class="t-title">Não encontramos “${esc(S.notFound)}”</p>
+      <ul class="tips t-small"><li>Confira se o nome está escrito como na receita ou na caixa.</li><li>Tente só a primeira palavra, como “metformina”.</li></ul>
+      <button class="btn outlined" data-act="openCam" data-mode="foto">${ic('camera')} Fotografar a receita</button>
+    </div>`;
+  } else if (S.multi){
+    h += `<p class="t-label">Encontramos ${S.multi.length} remédios</p><ul class="list">${S.multi.map(m=>`<li><button class="li" data-act="pickMed" data-id="${m.id}">${ic('pill')}<span class="grow"><b>${m.nome}</b><span class="sub">${m.indic}</span></span>${ic('chev')}</button></li>`).join('')}</ul>`;
+  }
+  const n = norm(S.query);
+  if (n.length >= 2 && !S.suggestion && !S.notFound && !S.multi){
+    const sug = suggestions(n);
+    if (sug.length) h += `<p class="t-label">Sugestões</p><ul class="list">${sug.map(s=>`<li><button class="li" data-act="${s.fora?'pickFora':'pickMed'}" data-id="${s.id}" ${s.brand?`data-brand="${esc(s.brand)}"`:''}>${ic('search')}<span class="grow"><b>${s.label}</b>${s.sub?`<span class="sub">${s.sub}</span>`:''}</span></button></li>`).join('')}</ul>`;
+    else h += `<p class="t-small">Toque em buscar para procurar “${esc(S.query)}”.</p>`;
+  } else if (!S.query && !S.suggestion && !S.notFound && !S.multi){
+    h += `<p class="t-label">Mais buscados</p><ul class="list mais">${MAIS.map(id=>{const m=medById(id)||foraById(id);return `<li><button class="li" data-act="${medById(id)?'pickMed':'pickFora'}" data-id="${id}">${ic('search')}<span class="grow">${m.nome}</span></button></li>`}).join('')}</ul>`;
+  }
+  return h;
+}
+function suggestions(n){
+  const out=[];
+  MEDS.forEach(m=>{
+    if (norm(m.nome).includes(n)) out.push({id:m.id,label:m.nome,sub:m.indic});
+    m.marcas.forEach(b=>{ if (norm(b).startsWith(n)) out.push({id:m.id,label:b,sub:`Nome comercial de ${m.nome.toLowerCase()}`,brand:b}); });
+  });
+  FORA.forEach(m=>{
+    if (norm(m.nome).includes(n)) out.push({id:m.id,label:m.nome,sub:'Não faz parte do programa',fora:true});
+    m.marcas.forEach(b=>{ if (norm(b).startsWith(n)) out.push({id:m.id,label:b,sub:`Nome comercial de ${m.nome.toLowerCase()}`,fora:true}); });
+  });
+  return out.slice(0,6);
+}
+function lev(a,b){const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1;j<=b.length;j++)d[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length];}
+function doSearch(q){
+  S.query=q; S.searchErr=null; S.suggestion=null; S.notFound=null; S.multi=null;
+  const n=norm(q);
+  if(!n){ S.searchErr='empty'; return refreshSearch(true); }
+  if (S.saveHistory && !S.history.some(h=>norm(h)===n)) S.history.unshift(q.trim());
+  // marca exata
+  for (const m of MEDS){ const b=m.marcas.find(x=>norm(x)===n); if(b) return selectMed(m,b); }
+  for (const m of FORA){ if(norm(m.nome)===n || m.marcas.some(x=>norm(x)===n)) return selectFora(m); }
+  const hits = MEDS.filter(m=>norm(m.nome)===n || norm(m.nome).split(' ').includes(n) || norm(m.nome).includes(n));
+  if (hits.length===1) return selectMed(hits[0]);
+  if (hits.length>1){ S.multi=hits; return refreshSearch(); }
+  const fh = FORA.find(m=>norm(m.nome).includes(n)); if(fh) return selectFora(fh);
+  // você quis dizer?
+  let best=null, bd=99;
+  [...MEDS.map(m=>({m,k:[m.chave,...m.marcas.map(norm)]}))].forEach(({m,k})=>k.forEach(w=>{const d=lev(n,w); if(d<bd){bd=d;best=m;}}));
+  S.notFound=q.trim();
+  if (best && bd <= Math.max(2, Math.floor(n.length/4))) S.suggestion=best;
+  refreshSearch();
+}
+function refreshSearch(focusInput){
+  const body=document.getElementById('search-body'); if(!body) return;
+  body.innerHTML=searchBody();
+  const f=document.getElementById('search-form'); const inp=document.getElementById('q');
+  if(f) f.dataset.invalid = S.searchErr==='empty';
+  if(inp){ if(S.searchErr==='empty') inp.setAttribute('aria-invalid','true'); else inp.removeAttribute('aria-invalid'); if(focusInput) inp.focus(); }
+}
+function selectMed(m, brand){
+  S.med=m; S.brandFrom=brand||null; S.presIdx=null; S.fora=null;
+  if (m.apres.length>1) go('dosagem');
+  else { S.presIdx=0; go('resultado'); }
+}
+function selectFora(m){ S.fora=m; go('naoprograma'); }
+
+T.dosagem = () => { const m=S.med||medById('losartana'); return `
+  ${topbar(m.nome)}
+  <div class="scroll">
+    ${S.brandFrom?brandBanner():''}
+    <h2 class="t-head">Qual está na sua receita?</h2>
+    <p class="t-small">A dosagem aparece ao lado do nome, na receita e na caixa. Exemplo: 50 mg.</p>
+    <fieldset style="border:0;margin:0;padding:0" class="stack">
+      <legend class="sr">Dosagem de ${m.nome}</legend>
+      ${m.apres.map((pr,i)=>`
+        <label class="opt" for="pr${i}">
+          <input type="radio" name="pres" id="pr${i}" value="${i}" ${S.presIdx===i?'checked':''}>
+          <span class="grow"><b>${pr.d}</b><span class="t-small">${pr.f}</span></span>
+          ${pr.p?`<span class="chip free">${ic('check')}Gratuito</span>`:`<span class="chip no">Fora do programa</span>`}
+        </label>`).join('')}
+    </fieldset>
+    <p class="src">${m.apres.filter(x=>x.p).length} de ${m.apres.length} apresentações fazem parte do Farmácia Popular.</p>
+  </div>
+  <div class="bottom-actions"><button class="btn filled block" id="see-res" data-act="seeResult" ${S.presIdx===null?'disabled':''}>Ver resultado</button></div>`; };
+
+const brandBanner = () => `<div class="banner info" role="note">${ic('info')}<p><b>${esc(S.brandFrom)}</b> é um nome comercial. No Farmácia Popular, ele aparece pelo princípio ativo: <b>${S.med.nome.toLowerCase()}</b>.</p></div>`;
+
+T.resultado = () => { const m=S.med||medById('losartana'); const pr=m.apres[S.presIdx??0]; return `
+  ${topbar('Resultado')}
+  <div class="scroll">
+    ${S.brandFrom?brandBanner():''}
+    <section class="card hero" aria-labelledby="res-name">
+      <p class="t-label" style="color:inherit">Princípio ativo</p>
+      <h2 class="t-display" id="res-name">${m.nome}</h2>
+      <p class="t-title">${presLabel(pr)}</p>
+      <span class="status free" style="align-self:flex-start">${ic('check')} Gratuito no Farmácia Popular</span>
+      <dl class="kv"><dt>Para</dt><dd>${m.indic}</dd><dt>Lista</dt><dd>Atualizada em ${S.listDate}</dd></dl>
+    </section>
+    ${m.nota?`<div class="banner warn">${ic('info')}<p>${m.nota}</p></div>`:''}
+    <section class="stack" aria-labelledby="levar">
+      <h3 class="t-title" id="levar">O que levar à farmácia</h3>
+      <ul class="priv t-body">
+        <li>${ic('doc')}<span>Receita médica dentro da validade, com ${m.nome.toLowerCase()} ${pr.d}</span></li>
+        <li>${ic('person')}<span>Documento oficial com foto e CPF do paciente</span></li>
+      </ul>
+    </section>
+    <section class="stack" aria-labelledby="perto">
+      <div class="row" style="justify-content:space-between"><h3 class="t-title" id="perto">Farmácias perto de você</h3></div>
+      ${sim.net==='off' ? offlineCard('Não conseguimos buscar farmácias agora.') : `
+        <p class="t-small">Perto do CEP <b>${S.cep}</b></p>
+        ${FARM.slice(0,2).map(pharmCard).join('')}
+        <button class="btn outlined" data-go="farmacias">Ver todas e trocar CEP</button>
+        <p class="src">Fonte: lista oficial “Aqui Tem Farmácia Popular”, Ministério da Saúde.</p>`}
+    </section>
+    <section class="stack" aria-labelledby="comprar">
+      <h3 class="t-title" id="comprar">Prefere comprar uma marca?</h3>
+      ${priceLinks(`${m.nome} ${pr.d}`)}
+    </section>
+    <button class="btn text" data-act="newSearch">${ic('search')} Fazer outra busca</button>
+  </div>`; };
+
+T.foraprograma = () => { const m=S.med||medById('losartana'); const pr=m.apres[S.presIdx??2]; const ok=m.apres.filter(x=>x.p); return `
+  ${topbar('Resultado')}
+  <div class="scroll">
+    <section class="card out" aria-labelledby="fp-name">
+      <p class="t-label">Princípio ativo</p>
+      <h2 class="t-head" id="fp-name">${m.nome}</h2>
+      <p class="t-title">${presLabel(pr)}</p>
+      <span class="status no" style="align-self:flex-start">${ic('err')} Esta dosagem não é gratuita</span>
+      <p class="t-small">${m.nome} ${pr.d} não faz parte do Farmácia Popular. Lista atualizada em ${S.listDate}.</p>
+    </section>
+    ${ok.length?`<div class="card hero">
+      <p class="t-title">${ok.map(x=>x.d).join(', ')} ${ok.length>1?'são gratuitas':'é gratuita'}</p>
+      <p class="t-small">Pergunte ao seu médico se a sua receita pode ser trocada. Não mude a dose por conta própria.</p>
+      <button class="btn filled" data-act="pickPres" data-idx="${m.apres.indexOf(ok[0])}">Ver ${m.nome.toLowerCase()} ${ok[0].d}</button>
+    </div>`:''}
+    <section class="stack" aria-labelledby="fp-buy"><h3 class="t-title" id="fp-buy">Onde comprar a dosagem da receita</h3>${priceLinks(`${m.nome} ${pr.d}`)}</section>
+  </div>`; };
+
+T.naoprograma = () => { const m=S.fora||foraById('dipirona'); return `
+  ${topbar('Resultado')}
+  <div class="scroll">
+    <section class="card out" aria-labelledby="np-name">
+      <h2 class="t-head" id="np-name">${m.nome}</h2>
+      <p class="t-small">${m.tipo[0].toUpperCase()+m.tipo.slice(1)} · marcas como ${m.marcas.join(', ')}</p>
+      <span class="status no" style="align-self:flex-start">${ic('err')} Não é gratuito</span>
+      <p class="t-body">${m.nome} não faz parte da lista do Farmácia Popular, em nenhuma dosagem. Lista atualizada em ${S.listDate}.</p>
+    </section>
+    <div class="banner info">${ic('info')}<p>Alguns remédios fora do programa são entregues de graça nas Unidades Básicas de Saúde (UBS). Pergunte na UBS do seu bairro.</p></div>
+    <section class="stack" aria-labelledby="np-buy"><h3 class="t-title" id="np-buy">Onde comprar</h3>${priceLinks(m.nome)}</section>
+    <button class="btn text" data-act="newSearch">${ic('search')} Fazer outra busca</button>
+  </div>`; };
+
+T.farmacias = () => `
+  ${topbar('Farmácias credenciadas')}
+  <div class="scroll">
+    <form class="stack" id="cep-form" novalidate>
+      <div class="out-field">
+        <label for="cep">Seu CEP</label>
+        <input id="cep" inputmode="numeric" autocomplete="postal-code" maxlength="9" value="${esc(S.cepInput??S.cep)}" aria-describedby="cep-help" ${S.cepErr?'aria-invalid="true"':''}>
+        <div id="cep-help" aria-live="polite">${S.cepErr?`<p class="field-help err" style="margin-left:0">${ic('err')}<span>${S.cepErr}</span></p>`:`<p class="field-help" style="margin-left:0">8 números, como 05835-005. Fica salvo só neste celular.</p>`}</div>
+      </div>
+      <button class="btn tonal" type="submit">${ic('search')} Buscar farmácias</button>
+    </form>
+    ${sim.net==='off' ? offlineCard('Para mostrar farmácias perto de você, o EconoMed precisa consultar a lista oficial.') : (S.cepErr ? '' : `
+      <p class="t-label">${FARM.length} farmácias perto de ${S.cep}</p>
+      ${FARM.map(pharmCard).join('')}
+      <p class="src">Fonte: lista oficial “Aqui Tem Farmácia Popular”, Ministério da Saúde. Ligue antes para confirmar se o remédio está disponível.</p>`)}
+  </div>`;
+
+/* câmera */
+T.camera = () => `
+  <div class="cam">
+    <header class="topbar">
+      <button class="icon-btn" data-act="back" aria-label="Voltar">${ic('back')}</button>
+      <h1 tabindex="-1" data-focus>${S.camMode==='foto'?'Fotografar receita':'Ler QR code'}</h1>
+    </header>
+    <div class="seg" role="group" aria-label="Tipo de leitura">
+      <button data-act="camMode" data-mode="foto" aria-pressed="${S.camMode==='foto'}">${ic('doc')} Foto da receita</button>
+      <button data-act="camMode" data-mode="qr" aria-pressed="${S.camMode==='qr'}">${ic('qr')} QR code</button>
+    </div>
+    <div class="viewfinder" role="img" aria-label="${S.camMode==='foto'?'Visor da câmera mostrando uma receita':'Visor da câmera mostrando um QR code'}">
+      ${S.camMode==='foto'
+        ? `<div class="paper"><i class="b"></i><i class="m"></i><i class="s"></i><i class="m"></i><i class="s"></i><i class="m"></i></div><div class="guide"></div>
+           <p class="cam-hint">Enquadre a receita inteira, com boa luz e sem reflexo</p>`
+        : `<div class="qr-code"></div><div class="guide qr"></div>
+           <p class="cam-hint">Aponte para o QR code da receita digital</p>`}
+    </div>
+    <div class="shutter-row">
+      ${S.camMode==='foto'
+        ? `<button class="shutter" data-act="capture" aria-label="Tirar foto da receita"><span></span></button>`
+        : `<button class="btn filled" data-act="scanQr" style="background:#CDEFD9;color:#00210F">${ic('qr')} Ler este QR code</button>`}
+    </div>
+  </div>`;
+
+T.lendo = () => `
+  <div class="center">
+    <div class="spinner" aria-hidden="true"></div>
+    <h1 class="t-head" tabindex="-1" data-focus>Lendo a receita…</h1>
+    <div class="prog" aria-hidden="true"><i></i></div>
+    <p class="t-small">A leitura acontece no seu celular. A foto não sai do aparelho.</p>
+  </div>`;
+
+const RECEITA_FOTO = [
+  {id:'losartana', idx:1}, {id:'metformina', idx:2}, {fora:'omeprazol', d:'20 mg'}
+];
+const RECEITA_QR = [{id:'sinvastatina', idx:1}, {id:'dapagliflozina', idx:0}];
+T.receita = () => { const items = S.recipeSource==='qr'?RECEITA_QR:RECEITA_FOTO; return `
+  ${topbar('Remédios da receita')}
+  <div class="scroll">
+    <div class="banner info">${ic(S.recipeSource==='qr'?'qr':'doc')}<p>${S.recipeSource==='qr'?'Receita digital de <b>12/11/2026</b>, lida pelo QR code.':'Receita de <b>05/11/2026</b>, lida pela foto.'} Confira se os nomes batem com a receita.</p></div>
+    <h2 class="t-head">Encontramos ${items.length} remédios</h2>
+    <ul class="list" style="gap:8px">
+      ${items.map(it=>{
+        if(it.fora){const f=foraById(it.fora);return `<li><button class="li boxed" data-act="pickFora" data-id="${f.id}"><span class="grow"><b>${f.nome} ${it.d}</b><span class="sub">cápsula</span><span><span class="chip no">Não é gratuito</span></span></span>${ic('chev')}</button></li>`;}
+        const m=medById(it.id),pr=m.apres[it.idx];
+        return `<li><button class="li boxed" data-act="pickPres" data-med="${m.id}" data-idx="${it.idx}"><span class="grow"><b>${m.nome} ${pr.d}</b><span class="sub">${pr.f}</span><span><span class="chip free">${ic('check')}Gratuito</span></span></span>${ic('chev')}</button></li>`;
+      }).join('')}
+    </ul>
+    <p class="src">${items.filter(i=>!i.fora).length} de ${items.length} são gratuitos no Farmácia Popular · lista de ${S.listDate}</p>
+    <button class="btn outlined" data-act="openCam" data-mode="${S.recipeSource}">${ic('camera')} Ler outra receita</button>
+  </div>`; };
+
+const errScreen = ({title, icon, tone='err', body, actions, bar='Receita'}) => `
+  ${topbar(bar)}
+  <div class="center">
+    <div class="state-ic ${tone}">${ic(icon,'')}</div>
+    <h2 class="t-head">${title}</h2>
+    ${body}
+    <div class="stack" style="width:100%">${actions}</div>
+  </div>`;
+
+T.leiturafalhou = () => errScreen({title:'Não conseguimos ler a receita', icon:'doc', bar:'Leitura da receita',
+  body:`<ul class="tips t-small"><li>Coloque a receita numa superfície lisa, com boa luz.</li><li>Enquadre a folha inteira, sem cortar as bordas.</li><li>Receita escrita à mão pode ser difícil de ler. Se preferir, digite o nome.</li></ul>`,
+  actions:`<button class="btn filled block" data-act="openCam" data-mode="foto">${ic('camera')} Tirar outra foto</button><button class="btn outlined block" data-act="typeName">${ic('search')} Digitar o nome</button>`});
+
+T.vencida = () => errScreen({title:'Esta receita está vencida', icon:'calendar', tone:'warn', bar:'Leitura da receita',
+  body:`<p class="t-body">A receita é de <b>14/03/2025</b>. As farmácias do programa não aceitam receita fora da validade.</p><p class="t-small">Peça uma receita nova ao seu médico ou na UBS. Você ainda pode ver se o remédio é gratuito.</p>`,
+  actions:`<button class="btn filled block" data-act="pickPres" data-med="losartana" data-idx="1">Ver remédios desta receita</button><button class="btn outlined block" data-act="openCam" data-mode="foto">${ic('camera')} Ler outra receita</button>`});
+
+T.qrerro = () => errScreen({title:'Este QR code não é de uma receita', icon:'qr', bar:'Ler QR code',
+  body:`<p class="t-body">O código lido não veio de uma receita digital válida.</p><p class="t-small">Use o QR code impresso na receita digital ou enviado pelo médico. Se não funcionar, fotografe a receita.</p>`,
+  actions:`<button class="btn filled block" data-act="openCam" data-mode="qr">${ic('qr')} Tentar de novo</button><button class="btn outlined block" data-act="openCam" data-mode="foto">${ic('camera')} Fotografar a receita</button>`});
+
+T.camnegada = () => errScreen({title:'O EconoMed não tem acesso à câmera', icon:'nocam', tone:'info',
+  body:`<p class="t-body">Para fotografar a receita, permita o uso da câmera.</p><p class="t-small">No Android: Configurações › Apps › EconoMed › Permissões › Câmera › Permitir durante o uso do app.</p>`,
+  actions:`<button class="btn filled block" data-act="grantCam">Abrir configurações</button><button class="btn outlined block" data-act="typeName">${ic('search')} Digitar o nome do remédio</button>`});
+
+T.camindisp = () => errScreen({title:'Câmera indisponível', icon:'nocam', tone:'warn',
+  body:`<p class="t-body">Outro app pode estar usando a câmera, ou este aparelho não tem câmera traseira.</p><p class="t-small">Feche os outros apps de câmera e tente de novo.</p>`,
+  actions:`<button class="btn filled block" data-act="openCam" data-mode="${S.camMode}">${ic('refresh')} Tentar de novo</button><button class="btn outlined block" data-act="typeName">${ic('search')} Digitar o nome do remédio</button>`});
+
+T.dados = () => `
+  <header class="topbar"><h1 tabindex="-1" data-focus style="padding-left:12px">Meus dados</h1></header>
+  <div class="scroll">
+    <div class="card hero">
+      <div class="row">${ic('lock')}<p class="t-title">Tudo fica neste celular</p></div>
+      <p class="t-small">Sem conta, sem login. Nada do que aparece aqui é enviado para a internet.</p>
+      <button class="btn text" style="align-self:flex-start;color:var(--on-primary-c);padding-left:0" data-act="openPriv">Ver política de privacidade ${ic('chev')}</button>
+    </div>
+    <div class="row" style="justify-content:space-between;flex-wrap:nowrap;gap:16px;min-height:56px">
+      <label for="save-h" class="t-body" style="flex:1"><b>Salvar histórico de buscas</b><br><span class="t-small">Ajuda a repetir buscas sem digitar de novo</span></label>
+      <span class="switch"><input type="checkbox" role="switch" id="save-h" ${S.saveHistory?'checked':''}><span></span></span>
+    </div>
+    <hr class="divider">
+    <section class="stack" aria-labelledby="hist">
+      <h2 class="t-title" id="hist">Histórico de buscas</h2>
+      ${S.history.length ? `<ul class="list">${S.history.map(h=>`<li><button class="li" data-act="repeat" data-q="${esc(h)}">${ic('history')}<span class="grow">${esc(h)}</span></button></li>`).join('')}</ul>
+        <button class="btn danger-out" data-act="askDelete">${ic('del')} Apagar histórico</button>`
+      : `<p class="t-small">Nenhuma busca salva.</p>`}
+    </section>
+    <section class="stack" aria-labelledby="cepsec">
+      <h2 class="t-title" id="cepsec">CEP salvo</h2>
+      <div class="row" style="justify-content:space-between"><span class="t-body" style="font-variant-numeric:tabular-nums">${S.cep}</span><button class="btn text" data-go="farmacias">Trocar</button></div>
+    </section>
+  </div>
+  ${navbar('dados')}`;
+
+/* ---------- Navegação ---------- */
+const ROOTS = ['inicio','dados'];
+let lastHash = '';
+function go(screen, opts={}){
+  if (!T[screen]) screen='inicio';
+  if (screen==='camera'){
+    if (sim.cam==='denied') screen='camnegada';
+    else if (sim.cam==='none') screen='camindisp';
+  }
+  if (opts.reset) S.stack = screen==='inicio'?[]:['inicio'];
+  else if (!opts.replace && S.screen && S.screen!==screen && !['splash','lendo'].includes(S.screen)) S.stack.push(S.screen);
+  S.screen = screen;
+  if (screen!=='privacidade') S.privFromDados = S.privFromDados && false;
+  render(true);
+}
+function back(){
+  if (S.dialog){ S.dialog=null; return renderOverlay(); }
+  const prev = S.stack.pop();
+  S.screen = prev || 'inicio';
+  render(true);
+}
+function render(focus){
+  app.innerHTML = T[S.screen]();
+  screenEl.classList.toggle('dark-ui', S.screen==='camera');
+  screenEl.classList.toggle('splash-ui', S.screen==='splash');
+  const h = '#'+S.screen;
+  if (location.hash!==h){ lastHash=h; try{ history.replaceState(null,'',h); }catch(e){ lastHash=h; location.hash=h; } }
+  if (focus){ const f=app.querySelector('[data-focus]'); if(f) f.focus({preventScroll:true}); }
+  if (S.screen==='splash'){ setTimeout(()=>{ if(S.screen==='splash'){ S.stack=[]; go(S.firstRun?'boasvindas':'inicio',{replace:true}); } }, 1800); }
+  if (S.screen==='busca' && focus){ const q=document.getElementById('q'); if(q) q.focus(); }
+  renderStatus(); renderOverlay(); markPanel();
+}
+function renderStatus(){
+  document.getElementById('sb-icons').innerHTML = `${sim.net==='off'?`<svg viewBox="0 0 24 24"><path d="${P.wifioff}"/></svg>`:`<svg viewBox="0 0 24 24"><path d="${P.wifi}"/></svg>`}<svg viewBox="0 0 24 24"><path d="${P.battery}"/></svg>`;
+  const d=new Date(); document.getElementById('clock').textContent = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+let snackTimer=null;
+function snack(text, action){ S.snack={text,action}; renderOverlay(); clearTimeout(snackTimer); snackTimer=setTimeout(()=>{S.snack=null;renderOverlay();}, action?8000:4500); }
+function renderOverlay(){
+  let h='';
+  if (S.dialog==='delete'){
+    h += `<div class="scrim" data-act="closeDialog"><div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dlg-t" aria-describedby="dlg-d" data-stop>
+      ${ic('del','ic ic-top')}
+      <h2 id="dlg-t">Apagar histórico de buscas?</h2>
+      <p class="t-body" id="dlg-d">As ${S.history.length} buscas salvas neste celular serão apagadas. Não dá para desfazer.</p>
+      <div class="acts"><button class="btn text" data-act="closeDialog" id="dlg-cancel">Cancelar</button><button class="btn danger" data-act="confirmDelete">Apagar</button></div>
+    </div></div>`;
+  }
+  if (S.snack){
+    h += `<div class="snack" role="status"><p>${S.snack.text}</p>${S.snack.action?`<button data-act="${S.snack.action[1]}">${S.snack.action[0]}</button>`:''}</div>`;
+  }
+  overlay.innerHTML=h;
+  if (S.dialog){ const c=document.getElementById('dlg-cancel'); if(c && !overlay.contains(document.activeElement)) c.focus(); }
+}
+
+/* ---------- Ações ---------- */
+const A = {
+  back,
+  finishOnb(){ S.firstRun=false; go('inicio',{reset:true}); },
+  openCam(el){ S.camMode = el.dataset.mode||'foto'; go('camera'); },
+  camMode(el){ S.camMode = el.dataset.mode; render(false); const b=app.querySelector(`[data-mode="${S.camMode}"]`); if(b) b.focus(); },
+  capture(){
+    go('lendo');
+    setTimeout(()=>{ if(S.screen!=='lendo') return;
+      S.recipeSource='foto';
+      go(sim.ocr==='ok'?'receita':sim.ocr==='fail'?'leiturafalhou':'vencida',{replace:true});
+    },1700);
+  },
+  scanQr(){ S.recipeSource='qr'; go(sim.qr==='ok'?'receita':'qrerro'); },
+  grantCam(){ sim.cam='ok'; syncSims(); S.screen=S.stack.pop()||'inicio'; S.camMode=S.camMode||'foto'; go('camera'); snack('Câmera permitida. Agora é só enquadrar a receita.'); },
+  typeName(){ S.query=''; S.searchErr=null; S.suggestion=null; S.notFound=null; S.multi=null; go('busca'); },
+  newSearch(){ A.typeName(); },
+  pickMed(el){ const m=medById(el.dataset.id); selectMed(m, el.dataset.brand||null); },
+  pickFora(el){ selectFora(foraById(el.dataset.id)); },
+  pickPres(el){ const m = el.dataset.med?medById(el.dataset.med):S.med; S.med=m; S.brandFrom=el.dataset.med?null:S.brandFrom; S.presIdx=+el.dataset.idx; go(m.apres[S.presIdx].p?'resultado':'foraprograma'); },
+  seeResult(){ if(S.presIdx===null) return; go(S.med.apres[S.presIdx].p?'resultado':'foraprograma'); },
+  retryNet(){ if(sim.net==='off') snack('Ainda sem internet. Confira o Wi-Fi ou os dados móveis.'); else { render(false); snack('Conectado de novo.'); } },
+  refreshList(){
+    if (sim.net==='off' || sim.upd==='fail') snack(`Não deu para atualizar a lista. Você continua com a versão de ${S.listDate}.`, ['Tentar de novo','refreshList']);
+    else snack(`Lista conferida. Nada mudou desde ${S.listDate}.`);
+  },
+  openPriv(){ S.privFromDados=true; go('privacidade'); S.privFromDados=true; },
+  askDelete(){ S.dialog='delete'; renderOverlay(); },
+  closeDialog(el, ev){ if(ev && ev.target.closest('[data-stop]') && !ev.target.closest('[data-act="closeDialog"]')) return; S.dialog=null; renderOverlay(); const b=app.querySelector('[data-act="askDelete"]'); if(b) b.focus(); },
+  confirmDelete(){ const n=S.history.length; S.history=[]; S.dialog=null; render(false); snack(`${n} buscas apagadas deste celular.`); },
+  repeat(el){ S.query=el.dataset.q; go('busca'); doSearch(el.dataset.q); }
+};
+
+
+document.getElementById('phone').addEventListener('click', ev=>{
+  const nav = ev.target.closest('[data-nav]');
+  if (nav){ const t=nav.dataset.nav; if(t==='camera'){ S.camMode='foto'; go('camera'); } else go(t,{reset:true}); return; }
+  const g = ev.target.closest('[data-go]');
+  if (g){ if(g.dataset.go==='busca'){ S.query='';S.searchErr=null;S.suggestion=null;S.notFound=null;S.multi=null; } go(g.dataset.go); return; }
+  const a = ev.target.closest('[data-act]');
+  if (a && A[a.dataset.act]){
+    if (a.classList.contains('scrim') && ev.target!==a) return;
+    A[a.dataset.act](a, ev);
+  }
+});
+document.getElementById('phone').addEventListener('input', ev=>{
+  if (ev.target.id==='q'){ S.query=ev.target.value; S.searchErr=null; S.suggestion=null; S.notFound=null; S.multi=null; refreshSearch(); }
+  if (ev.target.id==='cep'){ let v=ev.target.value.replace(/\D/g,'').slice(0,8); if(v.length>5) v=v.slice(0,5)+'-'+v.slice(5); ev.target.value=v; S.cepInput=v; }
+});
+document.getElementById('phone').addEventListener('change', ev=>{
+  if (ev.target.name==='pres'){ S.presIdx=+ev.target.value; const b=document.getElementById('see-res'); if(b) b.disabled=false; }
+  if (ev.target.id==='save-h'){ S.saveHistory=ev.target.checked; snack(S.saveHistory?'Histórico ligado. Novas buscas ficam salvas neste celular.':'Histórico desligado. Novas buscas não serão salvas.'); }
+});
+document.getElementById('phone').addEventListener('submit', ev=>{
+  ev.preventDefault();
+  if (ev.target.id==='search-form'){ doSearch(document.getElementById('q').value); }
+  if (ev.target.id==='cep-form'){
+    const raw=(document.getElementById('cep').value||'').replace(/\D/g,'');
+    S.cepInput=document.getElementById('cep').value;
+    if (raw.length!==8) S.cepErr='CEP inválido. Ele tem 8 números, como 05835-005.';
+    else if (/^0{5}/.test(raw)) S.cepErr='Não encontramos esse CEP. Confira os números e tente de novo.';
+    else { S.cepErr=null; S.cep=raw.slice(0,5)+'-'+raw.slice(5); }
+    render(false);
+    if (S.cepErr){ const c=document.getElementById('cep'); if(c) c.focus(); }
+  }
+});
+document.addEventListener('keydown', ev=>{ if(ev.key==='Escape' && S.dialog){ S.dialog=null; renderOverlay(); } });
+
+/* ---------- Painel ---------- */
+const FLOWS = [
+  {t:'Primeiro acesso', items:[['Splash','splash'],['Boas-vindas','boasvindas'],['Privacidade','privacidade']]},
+  {t:'Buscar remédio', items:[['Início','inicio'],['Busca e mais buscados','busca'],['Escolher dosagem','p-dosagem'],['Resultado gratuito','p-resultado'],['Nome comercial (Aradois)','p-aradois'],['Farmácias por CEP','farmacias']]},
+  {t:'Receita', items:[['Câmera: foto','p-camfoto'],['Câmera: QR code','p-camqr'],['Lendo a receita','p-lendo'],['Remédios encontrados','p-receita']]},
+  {t:'Meus dados', items:[['Meus dados','dados'],['Política de privacidade','p-priv']]},
+  {t:'Erros e avisos', err:true, items:[
+    ['Você quis dizer?','e-typo'],['Campo vazio','e-vazio'],['Dosagem fora do programa','e-dosagem'],['Não gratuito','e-naogratis'],
+    ['Falha de leitura','e-leitura'],['Receita vencida','e-vencida'],['Câmera negada','e-camneg'],['Câmera indisponível','e-camind'],
+    ['Sem internet','e-offline'],['CEP inválido','e-cep'],['Falha ao atualizar lista','e-update'],['Confirmar antes de apagar','e-apagar'],['Erro de QR code','e-qr']]}
+];
+const PRESET = {
+  'p-dosagem':()=>{ S.firstRun=false; S.stack=['inicio','busca']; S.med=medById('losartana'); S.brandFrom=null; S.presIdx=null; S.screen=null; go('dosagem',{replace:true}); },
+  'p-resultado':()=>{ S.stack=['inicio','busca','dosagem']; S.med=medById('losartana'); S.brandFrom=null; S.presIdx=1; go('resultado',{replace:true}); },
+  'p-aradois':()=>{ S.stack=['inicio']; go('busca',{replace:true}); S.query='Aradois'; doSearch('Aradois'); },
+  'p-camfoto':()=>{ resetSim('cam'); S.stack=['inicio']; S.camMode='foto'; go('camera',{replace:true}); },
+  'p-camqr':()=>{ resetSim('cam'); S.stack=['inicio']; S.camMode='qr'; go('camera',{replace:true}); },
+  'p-lendo':()=>{ resetSim('cam'); sim.ocr='ok'; syncSims(); S.stack=['inicio']; S.camMode='foto'; S.screen='camera'; A.capture(); },
+  'p-receita':()=>{ S.stack=['inicio','camera']; S.recipeSource='foto'; go('receita',{replace:true}); },
+  'p-priv':()=>{ S.stack=['inicio','dados']; S.privFromDados=true; S.screen='privacidade'; render(true); },
+  'e-typo':()=>{ S.stack=['inicio']; go('busca',{replace:true}); document.getElementById('q').value='lozartana'; doSearch('lozartana'); },
+  'e-vazio':()=>{ S.stack=['inicio']; S.query=''; S.suggestion=null;S.notFound=null;S.multi=null; go('busca',{replace:true}); doSearch(''); },
+  'e-dosagem':()=>{ S.stack=['inicio','busca','dosagem']; S.med=medById('losartana'); S.brandFrom=null; S.presIdx=2; go('foraprograma',{replace:true}); },
+  'e-naogratis':()=>{ S.stack=['inicio','busca']; S.fora=foraById('dipirona'); go('naoprograma',{replace:true}); },
+  'e-leitura':()=>{ S.stack=['inicio','camera']; go('leiturafalhou',{replace:true}); },
+  'e-vencida':()=>{ S.stack=['inicio','camera']; go('vencida',{replace:true}); },
+  'e-camneg':()=>{ sim.cam='denied'; syncSims(); S.stack=['inicio']; go('camera',{replace:true}); },
+  'e-camind':()=>{ sim.cam='none'; syncSims(); S.stack=['inicio']; go('camera',{replace:true}); },
+  'e-offline':()=>{ sim.net='off'; syncSims(); go('inicio',{reset:true}); },
+  'e-cep':()=>{ S.stack=['inicio']; S.cepInput='0583-5'; S.cepErr='CEP inválido. Ele tem 8 números, como 05835-005.'; go('farmacias',{replace:true}); },
+  'e-update':()=>{ sim.upd='fail'; syncSims(); go('inicio',{reset:true}); A.refreshList(); },
+  'e-apagar':()=>{ if(!S.history.length) S.history=['Aradois','Losartana potássica','Metformina','Insulina']; go('dados',{reset:true}); A.askDelete(); },
+  'e-qr':()=>{ S.stack=['inicio','camera']; S.camMode='qr'; go('qrerro',{replace:true}); }
+};
+const PRESET_SCREEN = {'p-dosagem':'dosagem','p-resultado':'resultado','p-aradois':'resultado','p-camfoto':'camera','p-camqr':'camera','p-lendo':'lendo','p-receita':'receita','p-priv':'privacidade',
+  'e-typo':'busca','e-vazio':'busca','e-dosagem':'foraprograma','e-naogratis':'naoprograma','e-leitura':'leiturafalhou','e-vencida':'vencida','e-camneg':'camnegada','e-camind':'camindisp','e-offline':'inicio','e-cep':'farmacias','e-update':'inicio','e-apagar':'dados','e-qr':'qrerro'};
+let lastJump=null;
+function resetSim(k){ if(k==='cam'&&sim.cam!=='ok'){ sim.cam='ok'; syncSims(); } }
+document.getElementById('flows').innerHTML = FLOWS.map(g=>`
+  <div class="pgroup"><h2>${g.t}</h2><div class="chips">${g.items.map(([l,k])=>`<button type="button" class="jump${g.err?' err':''}" data-jump="${k}">${l}</button>`).join('')}</div></div>`).join('');
+document.getElementById('flows').addEventListener('click', ev=>{
+  const b=ev.target.closest('[data-jump]'); if(!b) return;
+  const k=b.dataset.jump; lastJump=k; S.dialog=null; S.snack=null;
+  if (!k.startsWith('e-') && sim.net==='off' && k!=='e-offline'){ /* mantém simulação escolhida */ }
+  if (PRESET[k]) PRESET[k]();
+  else {
+    if (k==='privacidade') S.privFromDados=false;
+    if (k==='busca'){ S.query='';S.searchErr=null;S.suggestion=null;S.notFound=null;S.multi=null; }
+    if (k==='boasvindas'||k==='splash') S.firstRun=true;
+    S.stack = (k==='inicio'||k==='splash'||k==='boasvindas')?[]:(k==='privacidade'?['boasvindas']:['inicio']);
+    S.screen=null; go(k,{replace:true});
+  }
+  lastJump=k; markPanel();
+  if (window.matchMedia('(max-width: 860px)').matches) document.getElementById('phone').scrollIntoView({behavior:'smooth',block:'start'});
+});
+function markPanel(){
+  const jumpScr = lastJump ? (PRESET_SCREEN[lastJump]||lastJump) : null;
+  const useJump = jumpScr===S.screen;
+  document.querySelectorAll('[data-jump]').forEach(b=>{
+    const k=b.dataset.jump;
+    const cur = useJump ? k===lastJump : (!PRESET_SCREEN[k] && k===S.screen);
+    b.setAttribute('aria-current', cur?'true':'false');
+  });
+}
+
+/* simulações */
+const simMap = {'sim-net':'net','sim-cam':'cam','sim-ocr':'ocr','sim-qr':'qr','sim-upd':'upd'};
+function syncSims(){ Object.entries(simMap).forEach(([id,k])=>{ document.getElementById(id).value=sim[k]; }); renderStatus(); }
+Object.entries(simMap).forEach(([id,k])=>document.getElementById(id).addEventListener('change',e=>{
+  sim[k]=e.target.value;
+  if (k==='cam' && ['camera','camnegada','camindisp'].includes(S.screen)) { S.screen=S.stack.pop()||'inicio'; go('camera'); }
+  else render(false);
+}));
+document.getElementById('sim-theme').addEventListener('change',e=>{
+  const v=e.target.value; if(v) document.documentElement.setAttribute('data-theme',v); else document.documentElement.removeAttribute('data-theme');
+});
+document.getElementById('font-seg').addEventListener('click',e=>{
+  const b=e.target.closest('[data-font]'); if(!b) return;
+  document.documentElement.style.setProperty('--s', b.dataset.font);
+  document.querySelectorAll('#font-seg button').forEach(x=>x.setAttribute('aria-pressed', x===b));
+});
+
+window.addEventListener('hashchange', ()=>{
+  const h=location.hash.slice(1); if('#'+h===lastHash) return;
+  if (T[h] && h!==S.screen){ S.stack=h==='inicio'?[]:['inicio']; go(h,{replace:true}); }
+});
+setInterval(renderStatus, 30000);
+
+/* início: respeita link direto para uma tela */
+const start = location.hash.slice(1);
+if (start && T[start] && start!=='splash' && start!=='lendo'){ S.firstRun=false; S.stack = start==='inicio'?[]:['inicio']; S.screen=start; if(start==='dosagem'||start==='resultado'||start==='foraprograma'){S.med=medById('losartana');S.presIdx=start==='resultado'?1:(start==='foraprograma'?2:null);} if(start==='naoprograma') S.fora=foraById('dipirona'); render(false); }
+else render(false);
+})();
+</script>
+
+</body>
+</html>
