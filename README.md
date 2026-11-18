@@ -15,11 +15,12 @@ O código fica em [`docs/index.html`](docs/index.html): um único arquivo HTML, 
 
 - Remédios e dosagens: lista do programa Farmácia Popular (Ministério da Saúde), versão de 10/11/2026.
 - Farmácias: no app, lista oficial "Aqui Tem Farmácia Popular". No protótipo, os endereços são exemplos.
-- Preços: o app não guarda preços de farmácias. Os links abrem o site de cada rede (Drogasil, Droga Raia, Pague Menos).
+- Preço máximo permitido: tabela CMED/Anvisa publicada em 09/11/2026 (PMC com ICMS de 18%, São Paulo).
+- Preços de cada farmácia: o app não guarda. Os links abrem o site de cada rede (Drogasil, Droga Raia, Pague Menos).
 
 ### Publicar no GitHub Pages
 
-Em **Settings › Pages**, escolha *Deploy from a branch*, branch `main`, pasta `/docs`, e salve.
+Em **Settings › Pages**, escolha *Deploy from a branch* e a branch `main`. Com a pasta `/docs`, o endereço abre o protótipo direto. Com a pasta `/ (root)`, o `index.html` da raiz redireciona para `docs/`.
 
 ## Integrantes
 

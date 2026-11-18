@@ -191,6 +191,10 @@ a{color:inherit}
 .opt b{font-size:calc(18px*var(--s))}
 
 /* farmácias */
+.pmc{gap:calc(8px*var(--s))}
+.pmc-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:6px;border-top:1px solid var(--outline-v)}
+.pmc-row .grow{flex:1;min-width:0;display:flex;flex-direction:column}
+.pmc-val{font-weight:700;font-variant-numeric:tabular-nums;font-size:calc(17px*var(--s));white-space:nowrap}
 .pharm{display:flex;flex-direction:column;gap:6px;border:1px solid var(--outline-v);border-radius:14px;padding:14px}
 .pharm .top{display:flex;gap:10px;align-items:flex-start}
 .pharm .top .ic{color:var(--primary);margin-top:2px}
@@ -339,7 +343,7 @@ a{color:inherit}
         </div>
       </div>
     </div>
-    <p class="note">Remédios, dosagens e indicações seguem a lista do Farmácia Popular. Os endereços das farmácias são exemplos para o protótipo; no app, eles vêm da lista oficial “Aqui Tem Farmácia Popular”. Preços não ficam no app: os links abrem o site de cada rede.</p>
+    <p class="note">Remédios, dosagens e indicações seguem a lista do Farmácia Popular. Os endereços das farmácias são exemplos para o protótipo; no app, eles vêm da lista oficial “Aqui Tem Farmácia Popular”. O preço máximo vem da tabela CMED/Anvisa de 09/11/2026. Os preços de cada farmácia não ficam no app: os links abrem o site de cada rede.</p>
   </aside>
 
   <main class="device">
@@ -438,12 +442,16 @@ const MEDS = [
     apres:[{d:'2,5 mg/mL',f:'colírio',p:true},{d:'5 mg/mL',f:'colírio',p:true}]}
 ];
 const FORA = [
-  {id:'dipirona', nome:'Dipirona', marcas:['Novalgina'], tipo:'analgésico e antitérmico'},
-  {id:'ibuprofeno', nome:'Ibuprofeno', marcas:['Advil','Alivium'], tipo:'anti-inflamatório'},
-  {id:'omeprazol', nome:'Omeprazol', marcas:['Losec'], tipo:'protetor do estômago'},
-  {id:'paracetamol', nome:'Paracetamol', marcas:['Tylenol'], tipo:'analgésico e antitérmico'},
-  {id:'amoxicilina', nome:'Amoxicilina', marcas:['Amoxil'], tipo:'antibiótico'}
+  {id:'dipirona', nome:'Dipirona', marcas:['Novalgina'], tipo:'analgésico e antitérmico', dose:'1 g · comprimido'},
+  {id:'ibuprofeno', nome:'Ibuprofeno', marcas:['Advil','Alivium'], tipo:'anti-inflamatório', dose:'400 mg · cápsula'},
+  {id:'omeprazol', nome:'Omeprazol', marcas:['Losec'], tipo:'protetor do estômago', dose:'20 mg · cápsula'},
+  {id:'paracetamol', nome:'Paracetamol', marcas:['Tylenol'], tipo:'analgésico e antitérmico', dose:'750 mg · comprimido'},
+  {id:'amoxicilina', nome:'Amoxicilina', marcas:['Amoxil'], tipo:'antibiótico', dose:'500 mg · cápsula'}
 ];
+/* Preço Máximo ao Consumidor (PMC), tabela CMED/Anvisa publicada em 09/11/2026, ICMS 18% (SP).
+   Por apresentação: [embalagem, [menor PMC genérico, maior PMC genérico, nº de genéricos] | null, [marca, PMC] | null] */
+const CMED_DATE = '09/11/2026';
+const PMC = {"losartana":[["caixa com 30",null,["Corus",88.81]],["caixa com 30",[18.51,71.76,14],["Cozaar",73.14]],["caixa com 30",[53.51,106.0,3],["Cozaar",107.85]],["caixa com 30",[48.34,145.7,5],["Corus H",112.12]]],"metformina":[["caixa com 30",[16.0,20.15,5],["Glifage",30.96]],["caixa com 30",[8.19,16.31,3],["Glifage Xr",12.2]],["caixa com 30",[24.33,27.8,7],["Glifage",41.66]],["caixa com 30",[35.47,36.14,2],["Glifage",59.15]]],"insulina":[["embalagem de 3 mL",null,["Humulin N",96.61]],["embalagem de 10 mL",null,["Novolin R",88.89]]],"ipratropio":[["embalagem de 10 mL",null,["Atrovent",43.36]],["embalagem de 20 mL",[13.94,21.35,7],["Atrovent",32.34]]],"atenolol":[["caixa com 30",[7.73,37.75,11],["Ablok",26.09]]],"anlodipino":[["caixa com 30",[15.73,119.07,13],["Norvasc",93.12]]],"captopril":[["caixa com 30",[11.56,53.34,12],["Captocord",21.53]]],"enalapril":[["caixa com 30",[10.16,69.46,12],["Renitec",28.48]]],"hidroclorotiazida":[["caixa com 30",[6.66,10.63,10],["Clorana",16.36]]],"propranolol":[["caixa com 30",[6.08,11.69,6],["Amprax",8.99]]],"espironolactona":[["caixa com 30",[30.39,31.29,4],["Diacqua",30.99]]],"glibenclamida":[["caixa com 30",[16.02,17.17,8],["Daonil",26.47]]],"dapagliflozina":[["caixa com 30",[157.15,157.15,1],["Forxiga",241.85]]],"beclometasona":[["200 doses",[37.55,37.55,1],["Ailuk",37.55]],["200 doses",[61.44,61.44,1],["Ailuk",61.44]],["200 doses",[77.19,77.19,1],["Clenil Hfa",81.42]]],"salbutamol":[["200 doses",null,["Aerolin",57.74]],["embalagem de 10 mL",null,["Aerolin",24.89]]],"budesonida":[["120 doses",[31.5,31.5,1],["Inalide",31.5]],["200 doses",null,["Noex",83.63]]],"sinvastatina":[["caixa com 30",[20.23,224.58,5],["Sinvalip",29.47]],["caixa com 30",[19.17,224.58,9],["Sinvasmax",19.39]],["caixa com 30",[38.0,223.99,11],["Sinvasmax",38.83]]],"alendronato":[["caixa com 4",[22.73,224.35,12],["Ostrazil",77.44]]],"carbidopa":[["caixa com 30",null,["Parkidopa",61.27]]],"timolol":[["embalagem de 5 mL",[13.76,13.76,1],null],["embalagem de 5 mL",[14.64,16.25,3],["Timoptol",85.68]]],"dipirona":[["caixa com 10",[15.31,31.22,3],["Novalgina",25.76]]],"ibuprofeno":[["caixa com 10",[23.02,29.3,5],["Advil",32.06]]],"omeprazol":[["caixa com 28",[31.48,158.46,11],["Omoprel",27.64]]],"paracetamol":[["caixa com 20",[17.21,33.27,10],["Tylenol",49.98]]],"amoxicilina":[["caixa com 21",[23.49,84.55,13],["Amoxil",130.08]]]};
 const MAIS = ['losartana','metformina','dipirona','insulina','ipratropio','atenolol','sinvastatina','dapagliflozina'];
 const FARM = [
   {nome:'Farmácia Itapecerica', end:'Estr. de Itapecerica, 2801, Loja A, Vila Maracanã, São Paulo – SP, 05835-005', dist:'0,4 km'},
@@ -495,7 +503,22 @@ const priceLinks = (term) => {
     <a class="extlink" href="${u}" target="_blank" rel="noopener">
       <span class="grow"><b>${n}</b><span class="t-small">Ver preço no site</span></span>${ic('ext')}<span class="sr">(abre o site em outra aba)</span>
     </a>`).join('')}</div>
-    <p class="src">Os preços mudam todo dia, por isso o EconoMed não mostra valores. Confira no site de cada farmácia.</p>`;
+    <p class="src">O preço de cada farmácia muda todo dia e as redes não oferecem consulta pública. Confira no site de cada uma.</p>`;
+};
+const brl = n => n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const pmcCard = (key, idx, label) => {
+  const e = (PMC[key]||[])[idx];
+  if (!e) return '';
+  const [emb, gen, ref] = e;
+  const rows = [];
+  if (gen) rows.push(`<div class="pmc-row"><span class="grow"><b>Genérico</b><span class="t-small">${gen[2]>1?`${gen[2]} laboratórios`:'1 laboratório'}</span></span><span class="pmc-val">${gen[0]===gen[1]?`até ${brl(gen[1])}`:`${brl(gen[0])} a ${brl(gen[1])}`}</span></div>`);
+  if (ref) rows.push(`<div class="pmc-row"><span class="grow"><b>${ref[0]}</b><span class="t-small">marca</span></span><span class="pmc-val">até ${brl(ref[1])}</span></div>`);
+  return `<section class="card out pmc" aria-labelledby="pmc-${key}">
+    <p class="t-label" id="pmc-${key}">Preço máximo permitido</p>
+    <p class="t-small">${label}, ${emb}</p>
+    ${rows.join('')}
+    <p class="src">Fonte: tabela CMED/Anvisa de ${CMED_DATE}, preço máximo ao consumidor com ICMS de 18% (São Paulo). O teto muda conforme o fabricante. A farmácia pode cobrar menos, nunca mais que isso.</p>
+  </section>`;
 };
 const pharmCard = f => `
   <article class="pharm">
@@ -724,6 +747,7 @@ T.resultado = () => { const m=S.med||medById('losartana'); const pr=m.apres[S.pr
     </section>
     <section class="stack" aria-labelledby="comprar">
       <h3 class="t-title" id="comprar">Prefere comprar uma marca?</h3>
+      ${pmcCard(m.id, S.presIdx??0, `${m.nome} ${pr.d}`)}
       ${priceLinks(`${m.nome} ${pr.d}`)}
     </section>
     <button class="btn text" data-act="newSearch">${ic('search')} Fazer outra busca</button>
@@ -744,7 +768,7 @@ T.foraprograma = () => { const m=S.med||medById('losartana'); const pr=m.apres[S
       <p class="t-small">Pergunte ao seu médico se a sua receita pode ser trocada. Não mude a dose por conta própria.</p>
       <button class="btn filled" data-act="pickPres" data-idx="${m.apres.indexOf(ok[0])}">Ver ${m.nome.toLowerCase()} ${ok[0].d}</button>
     </div>`:''}
-    <section class="stack" aria-labelledby="fp-buy"><h3 class="t-title" id="fp-buy">Onde comprar a dosagem da receita</h3>${priceLinks(`${m.nome} ${pr.d}`)}</section>
+    <section class="stack" aria-labelledby="fp-buy"><h3 class="t-title" id="fp-buy">Onde comprar a dosagem da receita</h3>${pmcCard(m.id, S.presIdx??2, `${m.nome} ${pr.d}`)}${priceLinks(`${m.nome} ${pr.d}`)}</section>
   </div>`; };
 
 T.naoprograma = () => { const m=S.fora||foraById('dipirona'); return `
@@ -757,7 +781,7 @@ T.naoprograma = () => { const m=S.fora||foraById('dipirona'); return `
       <p class="t-body">${m.nome} não faz parte da lista do Farmácia Popular, em nenhuma dosagem. Lista atualizada em ${S.listDate}.</p>
     </section>
     <div class="banner info">${ic('info')}<p>Alguns remédios fora do programa são entregues de graça nas Unidades Básicas de Saúde (UBS). Pergunte na UBS do seu bairro.</p></div>
-    <section class="stack" aria-labelledby="np-buy"><h3 class="t-title" id="np-buy">Onde comprar</h3>${priceLinks(m.nome)}</section>
+    <section class="stack" aria-labelledby="np-buy"><h3 class="t-title" id="np-buy">Onde comprar</h3>${pmcCard(m.id, 0, `${m.nome} ${m.dose.split(' · ')[0]}`)}${priceLinks(m.nome)}</section>
     <button class="btn text" data-act="newSearch">${ic('search')} Fazer outra busca</button>
   </div>`; };
 
