@@ -7,11 +7,11 @@
 <title>EconoMed Protótipo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
 <style>
 /* Layout: painel de navegação à esquerda + celular Android ao centro; no celular real, o app vem primeiro e o painel desce. */
 :root{
-  --font: "Atkinson Hyperlegible", "Roboto", "Segoe UI", system-ui, sans-serif;
+  --font: "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif;
   /* página */
   --page:#E9F0EC; --page-ink:#14221B; --panel:#FFFFFF; --muted:#4E5D55; --line:#D2DCD6; --bezel:#1B1F1D;
   /* app: Verde Cuidado (Material 3) */
@@ -25,26 +25,8 @@
   --cam-bg:#0A0E0C; --cam-ink:#F2F5F3; --cam-dim:rgba(10,14,12,.62);
   --s:1;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --page:#0D1411; --page-ink:#E2EAE5; --panel:#141C18; --muted:#A3B1A9; --line:#2A3530; --bezel:#050706;
-  --surface:#0F1512; --surface-2:#17201B; --surface-3:#202A24; --on-surface:#DEE5E0; --on-variant:#C0CBC4;
-  --outline:#8A968F; --outline-v:#3F4A44;
-  --primary:#8AD8A7; --on-primary:#00391D; --primary-c:#00522E; --on-primary-c:#B7EFCB;
-  --navy:#AAC7FF; --on-navy:#0B2546; --navy-c:#22406A; --on-navy-c:#D6E3FF;
-  --amber:#F7C548; --on-amber:#2A1E00; --amber-c:#594200; --on-amber-c:#FFE6A3;
-  --error:#F2B8B5; --on-error:#601410; --error-c:#8C1D18; --on-error-c:#F9DEDC;
-  --scrim:rgba(0,0,0,.6); color-scheme:dark;
-}}
-:root[data-theme="dark"]{
-  --page:#0D1411; --page-ink:#E2EAE5; --panel:#141C18; --muted:#A3B1A9; --line:#2A3530; --bezel:#050706;
-  --surface:#0F1512; --surface-2:#17201B; --surface-3:#202A24; --on-surface:#DEE5E0; --on-variant:#C0CBC4;
-  --outline:#8A968F; --outline-v:#3F4A44;
-  --primary:#8AD8A7; --on-primary:#00391D; --primary-c:#00522E; --on-primary-c:#B7EFCB;
-  --navy:#AAC7FF; --on-navy:#0B2546; --navy-c:#22406A; --on-navy-c:#D6E3FF;
-  --amber:#F7C548; --on-amber:#2A1E00; --amber-c:#594200; --on-amber-c:#FFE6A3;
-  --error:#F2B8B5; --on-error:#601410; --error-c:#8C1D18; --on-error-c:#F9DEDC;
-  --scrim:rgba(0,0,0,.6); color-scheme:dark;
-}
+/* Tema claro fixo, a pedido do grupo. */
+:root{color-scheme:light}
 *{box-sizing:border-box}
 html,body{min-height:100%}
 body{background:var(--page);color:var(--page-ink);font-family:var(--font);font-size:15px;line-height:1.5;
@@ -192,8 +174,7 @@ a{color:inherit}
 
 /* farmácias */
 .chips-row{display:flex;flex-wrap:wrap;gap:8px}
-.fchip{min-height:40px;border-radius:8px;border:1px solid var(--outline);background:transparent;padding:6px 14px;font-weight:700;font-size:calc(14px*var(--s));display:inline-flex;align-items:center;gap:6px;cursor:pointer;color:var(--on-surface);position:relative}
-.fchip::after{content:"";position:absolute;inset:-4px 0}
+.fchip{min-height:48px;border-radius:8px;border:1px solid var(--outline);background:transparent;padding:6px 14px;font-weight:700;font-size:calc(14px*var(--s));display:inline-flex;align-items:center;gap:6px;cursor:pointer;color:var(--on-surface);position:relative}
 .fchip[aria-pressed="true"]{background:var(--navy-c);color:var(--on-navy-c);border-color:transparent}
 .fchip .ic{width:18px;height:18px}
 .notif{position:absolute;left:10px;right:10px;top:40px;background:var(--surface-3);color:var(--on-surface);border-radius:20px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;pointer-events:auto;box-shadow:0 10px 30px rgba(0,0,0,.3);animation:down .25s ease-out;cursor:pointer;border:0;text-align:left;font-size:calc(14px*var(--s))}
@@ -300,7 +281,7 @@ a{color:inherit}
 @keyframes up{from{transform:translateY(12px);opacity:0}}
 
 .switch{position:relative;width:52px;height:32px;flex:none}
-.switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;width:100%;height:100%}
+.switch input{position:absolute;top:-8px;left:-4px;width:calc(100% + 8px);height:calc(100% + 16px);opacity:0;margin:0;cursor:pointer;z-index:1}
 .switch span{position:absolute;inset:0;border-radius:16px;background:var(--surface-3);border:2px solid var(--outline);transition:.15s}
 .switch span::after{content:"";position:absolute;left:4px;top:50%;width:16px;height:16px;border-radius:50%;background:var(--outline);transform:translateY(-50%);transition:.15s}
 .switch input:checked + span{background:var(--primary);border-color:var(--primary)}
@@ -341,7 +322,6 @@ a{color:inherit}
         <label>Foto da receita<select id="sim-ocr"><option value="ok">Leitura certa</option><option value="fail">Falha na leitura</option><option value="expired">Receita vencida</option></select></label>
         <label>QR code<select id="sim-qr"><option value="ok">QR válido</option><option value="fail">QR inválido</option></select></label>
         <label>Atualizar lista<select id="sim-upd"><option value="ok">Dá certo</option><option value="fail">Falha</option></select></label>
-        <label>Tema<select id="sim-theme"><option value="">Do sistema</option><option value="light">Claro</option><option value="dark">Escuro</option></select></label>
       </div>
       <div class="pgroup" style="margin-top:6px">
         <h2 id="font-lbl">Tamanho da fonte do Android</h2>
@@ -671,7 +651,7 @@ function searchBody(){
     if (sug.length) h += `<p class="t-label">Sugestões</p><ul class="list">${sug.map(s=>`<li><button class="li" data-act="${s.fora?'pickFora':'pickMed'}" data-id="${s.id}" ${s.brand?`data-brand="${esc(s.brand)}"`:''}>${ic('search')}<span class="grow"><b>${s.label}</b>${s.sub?`<span class="sub">${s.sub}</span>`:''}</span></button></li>`).join('')}</ul>`;
     else h += `<p class="t-small">Toque em buscar para procurar “${esc(S.query)}”.</p>`;
   } else if (!S.query && !S.suggestion && !S.notFound && !S.multi){
-    h += `<p class="t-label">Mais buscados</p><ul class="list mais">${MAIS.map(id=>{const m=medById(id)||foraById(id);return `<li><button class="li" data-act="${medById(id)?'pickMed':'pickFora'}" data-id="${id}">${ic('search')}<span class="grow">${m.nome}</span></button></li>`}).join('')}</ul>`;
+    h += `<p class="t-label">Mais buscados</p><ul class="list mais">${MAIS.map(id=>{const m=medById(id)||foraById(id);return `<li><button class="li" data-act="${medById(id)?'pickMed':'pickFora'}" data-id="${id}">${ic('search')}<span class="grow">${m.nome}</span>${medById(id)?`<span class="chip free">${ic('check')}Gratuito</span>`:`<span class="chip no">Não é gratuito</span>`}</button></li>`}).join('')}</ul>`;
   }
   return h;
 }
@@ -732,8 +712,7 @@ T.dosagem = () => { const m=S.med||medById('losartana'); return `
       ${m.apres.map((pr,i)=>`
         <label class="opt" for="pr${i}">
           <input type="radio" name="pres" id="pr${i}" value="${i}" ${S.presIdx===i?'checked':''}>
-          <span class="grow"><b>${pr.d}</b><span class="t-small">${pr.f}</span></span>
-          ${pr.p?`<span class="chip free">${ic('check')}Gratuito</span>`:`<span class="chip no">Fora do programa</span>`}
+          <span class="grow"><b>${pr.d}</b><span class="t-small">${pr.f}</span><span>${pr.p?`<span class="chip free">${ic('check')}Gratuito</span>`:`<span class="chip no">Fora do programa</span>`}</span></span>
         </label>`).join('')}
     </fieldset>
     <p class="src">${m.apres.filter(x=>x.p).length} de ${m.apres.length} apresentações fazem parte do Farmácia Popular.</p>
@@ -1220,9 +1199,7 @@ Object.entries(simMap).forEach(([id,k])=>document.getElementById(id).addEventLis
   if (k==='cam' && ['camera','camnegada','camindisp'].includes(S.screen)) { S.screen=S.stack.pop()||'inicio'; go('camera'); }
   else render(false);
 }));
-document.getElementById('sim-theme').addEventListener('change',e=>{
-  const v=e.target.value; if(v) document.documentElement.setAttribute('data-theme',v); else document.documentElement.removeAttribute('data-theme');
-});
+
 document.getElementById('font-seg').addEventListener('click',e=>{
   const b=e.target.closest('[data-font]'); if(!b) return;
   document.documentElement.style.setProperty('--s', b.dataset.font);

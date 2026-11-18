@@ -7,7 +7,7 @@ Projeto integrador do curso de Ciência da Computação.
 
 **Abrir:** https://vinicyusro.github.io/EconoMed/
 
-O protótipo simula o app num celular Android. Dá para tocar nas telas como no app de verdade, ou usar o painel ao lado para ir direto a qualquer tela, simular erros (sem internet, câmera negada, falha na leitura da receita) e testar fonte grande e tema escuro.
+O protótipo simula o app num celular Android. Dá para tocar nas telas como no app de verdade, ou usar o painel ao lado para ir direto a qualquer tela, simular erros (sem internet, câmera negada, falha na leitura da receita) e testar fonte grande. O tema é sempre claro.
 
 ### Funções
 
