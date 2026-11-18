@@ -68,14 +68,15 @@ a{color:inherit}
 .gesture{height:22px;flex:none;display:flex;align-items:center;justify-content:center}
 .gesture span{width:108px;height:4px;border-radius:4px;background:var(--on-surface);opacity:.55}
 .app{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
-.scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:4px 16px 24px;display:flex;flex-direction:column;gap:calc(16px*var(--s))}
+.scroll{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:4px 16px 24px;display:flex;flex-direction:column;gap:calc(16px*var(--s))}
+.scroll > *, .center > *, .stack > *{flex-shrink:0}
 .screen.dark-ui{background:var(--cam-bg);color:var(--cam-ink)}
 .screen.dark-ui .gesture span{background:var(--cam-ink)}
 .screen.splash-ui{background:var(--primary);color:var(--on-primary)}
 .screen.splash-ui .gesture span{background:var(--on-primary)}
 
 /* tipografia do app */
-.app{font-size:calc(16px*var(--s));line-height:1.5}
+.app{font-size:calc(16px*var(--s));line-height:1.5;overflow-wrap:anywhere;hyphens:auto}
 .t-display{font-size:calc(28px*var(--s));line-height:1.2;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance}
 .t-head{font-size:calc(22px*var(--s));line-height:1.25;font-weight:700;margin:0;text-wrap:balance}
 .t-title{font-size:calc(18px*var(--s));line-height:1.3;font-weight:700;margin:0}
@@ -113,7 +114,8 @@ a{color:inherit}
 .field{display:flex;align-items:center;gap:4px;min-height:56px;border-radius:28px;background:var(--surface-3);padding:0 4px 0 16px;border:2px solid transparent}
 .field:focus-within{border-color:var(--primary)}
 .field[data-invalid="true"]{border-color:var(--error)}
-.field input{flex:1;min-width:0;border:0;background:transparent;font-size:calc(17px*var(--s));padding:12px 0;outline:none;color:var(--on-surface)}
+.topbar .field{min-width:0}
+.field input{flex:1;min-width:0;width:100%;border:0;background:transparent;font-size:calc(17px*var(--s));padding:12px 0;outline:none;color:var(--on-surface)}
 .field input::placeholder{color:var(--on-variant)}
 .fake-field{width:100%;cursor:text;text-align:left;color:var(--on-variant);font-size:calc(17px*var(--s))}
 .field-help{font-size:calc(14px*var(--s));margin:4px 16px 0;color:var(--on-variant)}
@@ -131,6 +133,9 @@ a{color:inherit}
 .li.boxed{border:1px solid var(--outline-v);border-radius:14px;padding:12px 14px}
 .li.boxed .grow{gap:4px}
 .li .ic{color:var(--on-variant)}
+.li .chip{flex:none}
+.mais .li{flex-wrap:wrap}
+.mais .li .grow{flex:1 1 60%}
 .li .grow{flex:1;min-width:0;display:flex;flex-direction:column}
 .li .sub{font-size:calc(14px*var(--s));color:var(--on-variant)}
 .mais li{border-bottom:1px solid var(--outline-v)}
@@ -157,19 +162,21 @@ a{color:inherit}
 .status{display:inline-flex;align-items:center;gap:8px;border-radius:10px;padding:8px 12px;font-weight:700;font-size:calc(16px*var(--s));line-height:1.25}
 .status.free{background:var(--primary);color:var(--on-primary)}
 .status.no{background:var(--error-c);color:var(--on-error-c)}
-.chip{display:inline-flex;align-items:center;gap:4px;border-radius:8px;padding:2px 8px;font-size:calc(13px*var(--s));font-weight:700;line-height:1.5}
+.chip{white-space:nowrap;overflow-wrap:normal;hyphens:none;flex:none;display:inline-flex;align-items:center;gap:4px;border-radius:8px;padding:2px 8px;font-size:calc(13px*var(--s));font-weight:700;line-height:1.5}
 .chip.free{background:var(--primary-c);color:var(--on-primary-c)}
 .chip.no{background:var(--surface-3);color:var(--on-variant);border:1px solid var(--outline-v)}
 .chip .ic{width:calc(16px*var(--s));height:calc(16px*var(--s))}
-.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:calc(15px*var(--s))}
+.kv{display:grid;grid-template-columns:fit-content(45%) minmax(0,1fr);gap:4px 12px;margin:0;font-size:calc(15px*var(--s))}
 .kv dt{color:var(--on-variant)}
-.kv dd{margin:0;font-weight:700;min-width:0}
+.nw{white-space:nowrap}
+.kv dd{margin:0;font-weight:700;min-width:0;overflow-wrap:break-word;hyphens:none}
 
 /* opções de dosagem */
 .opt{display:flex;gap:14px;align-items:center;border:1px solid var(--outline-v);border-radius:14px;padding:12px 14px;min-height:64px;cursor:pointer}
 .opt:has(input:checked){border:2px solid var(--primary);background:var(--surface-2)}
 .opt input{width:22px;height:22px;accent-color:var(--primary);flex:none;margin:0}
 .opt .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.opt .chip{white-space:normal}
 .opt b{font-size:calc(18px*var(--s))}
 
 /* farmácias */
@@ -180,11 +187,11 @@ a{color:inherit}
 .notif{position:absolute;left:10px;right:10px;top:40px;background:var(--surface-3);color:var(--on-surface);border-radius:20px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;pointer-events:auto;box-shadow:0 10px 30px rgba(0,0,0,.3);animation:down .25s ease-out;cursor:pointer;border:0;text-align:left;font-size:calc(14px*var(--s))}
 .notif .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 @keyframes down{from{transform:translateY(-16px);opacity:0}}
-.navbar button{font-size:calc(12px*var(--s))}
+.navbar button{font-size:calc(12px*min(var(--s),1.25))}
 .pmc{gap:calc(8px*var(--s))}
 .pmc-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:6px;border-top:1px solid var(--outline-v)}
-.pmc-row .grow{flex:1;min-width:0;display:flex;flex-direction:column}
-.pmc-val{font-weight:700;font-variant-numeric:tabular-nums;font-size:calc(17px*var(--s));white-space:nowrap}
+.pmc-row .grow{flex:1 1 120px;min-width:0;display:flex;flex-direction:column}
+.pmc-val{font-weight:700;font-variant-numeric:tabular-nums;font-size:calc(17px*var(--s));overflow-wrap:normal;hyphens:none}
 .pharm{display:flex;flex-direction:column;gap:6px;border:1px solid var(--outline-v);border-radius:14px;padding:14px}
 .pharm .top{display:flex;gap:10px;align-items:flex-start}
 .pharm .top .ic{color:var(--primary);margin-top:2px}
@@ -203,7 +210,7 @@ a{color:inherit}
 
 /* nav inferior */
 .navbar{flex:none;display:flex;background:var(--surface-2);padding:8px 0 4px;border-top:1px solid var(--outline-v)}
-.navbar button{flex:1;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;cursor:pointer;font-size:calc(12.5px*var(--s));font-weight:700;color:var(--on-variant)}
+.navbar button{flex:1 1 0;min-width:0;padding:0 2px;text-align:center;line-height:1.2;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;cursor:pointer;font-size:calc(12.5px*var(--s));font-weight:700;color:var(--on-variant)}
 .navbar .pill{width:60px;height:30px;border-radius:15px;display:grid;place-items:center}
 .navbar .pill svg{width:24px;height:24px;fill:currentColor}
 .navbar button[aria-current="page"]{color:var(--on-surface)}
@@ -254,7 +261,7 @@ a{color:inherit}
 .shutter:active span{transform:scale(.92)}
 
 /* leitura */
-.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;padding:24px}
+.center{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:safe center;text-align:center;gap:16px;padding:24px}
 .spinner{width:56px;height:56px;border-radius:50%;border:5px solid var(--primary-c);border-top-color:var(--primary);animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .prog{width:200px;height:6px;border-radius:3px;background:var(--surface-3);overflow:hidden}
@@ -281,7 +288,7 @@ a{color:inherit}
 @keyframes up{from{transform:translateY(12px);opacity:0}}
 
 .switch{position:relative;width:52px;height:32px;flex:none}
-.switch input{position:absolute;top:-8px;left:-4px;width:calc(100% + 8px);height:calc(100% + 16px);opacity:0;margin:0;cursor:pointer;z-index:1}
+.switch input{position:absolute;top:-8px;left:0;width:100%;height:calc(100% + 16px);opacity:0;margin:0;cursor:pointer;z-index:1}
 .switch span{position:absolute;inset:0;border-radius:16px;background:var(--surface-3);border:2px solid var(--outline);transition:.15s}
 .switch span::after{content:"";position:absolute;left:4px;top:50%;width:16px;height:16px;border-radius:50%;background:var(--outline);transform:translateY(-50%);transition:.15s}
 .switch input:checked + span{background:var(--primary);border-color:var(--primary)}
@@ -306,7 +313,7 @@ a{color:inherit}
 
 </head>
 <body>
-<div class="stage">
+<div class="stage" lang="pt-BR">
   <aside class="panel" aria-label="Mapa do protótipo">
     <div class="brandline">
       <svg width="48" height="48" viewBox="0 0 48 48" aria-hidden="true"><use href="#logo"/></svg>
@@ -456,7 +463,7 @@ const foraById = id => FORA.find(m => m.id===id);
 /* ---------- Estado ---------- */
 const DAY=864e5;
 const daysAgo = n => { const d=new Date(); d.setHours(12,0,0,0); return new Date(d.getTime()-n*DAY).toISOString().slice(0,10); };
-const fmtD = iso => { const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
+const fmtD = iso => { const [y,m,d]=iso.split('-'); return `<span class="nw">${d}/${m}/${y}</span>`; };
 const addD = (iso,n) => new Date(new Date(iso+'T12:00:00').getTime()+n*DAY).toISOString().slice(0,10);
 const todayIso = () => daysAgo(0);
 const daysUntil = iso => Math.round((new Date(iso+'T12:00:00') - new Date(todayIso()+'T12:00:00'))/DAY);
@@ -893,7 +900,7 @@ function nextPickupCard(){
   if (!S.saved.length) return '';
   const it=[...S.saved].sort((a,b)=>addD(a.last,30)<addD(b.last,30)?-1:1)[0]; const m=medById(it.id), pr=m.apres[it.idx];
   const nx=addD(it.last,30), dd=daysUntil(nx);
-  return `<button class="li boxed" data-nav="meus" style="background:var(--amber-c);color:var(--on-amber-c);border-color:transparent">${ic('calendar')}<span class="grow"><b>Próxima retirada ${dd<=0?'já pode ser feita':dd===1?'amanhã':`em ${dd} dias`}</b><span class="sub" style="color:inherit">${m.nome} ${pr.d} · ${fmtD(nx)}</span></span>${ic('chev')}</button>`;
+  return `<button class="li boxed" data-nav="meus" style="background:var(--amber-c);color:var(--on-amber-c);border-color:transparent">${ic('calendar')}<span class="grow"><b>Próxima retirada ${dd<=0?'já pode ser feita':dd===1?'amanhã':`em ${dd} dias`}</b><span class="sub" style="color:inherit">${m.nome} ${pr.d} · ${fmtD(nx).replace(/<[^>]+>/g,'')}</span></span>${ic('chev')}</button>`;
 }
 T.meus = () => `
   <header class="topbar"><h1 tabindex="-1" data-focus style="padding-left:12px">Meus remédios</h1></header>
@@ -901,7 +908,7 @@ T.meus = () => `
     <p class="t-small">Salve os remédios que você retira todo mês. O EconoMed calcula a próxima retirada, 30 dias depois da última, e avisa antes. Tudo fica só neste celular.</p>
     ${S.saved.length ? S.saved.map((it,i)=>{ const m=medById(it.id), pr=m.apres[it.idx]; const nx=addD(it.last,30), dd=daysUntil(nx); return `
       <article class="card out" aria-labelledby="sv${i}">
-        <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap">
+        <div class="row" style="justify-content:space-between;align-items:flex-start">
           <div style="min-width:0"><h2 class="t-title" id="sv${i}">${m.nome} ${pr.d}</h2><p class="t-small">${pr.f} · ${m.indic}</p></div>
           <span class="chip free">${ic('check')}Gratuito</span>
         </div>
