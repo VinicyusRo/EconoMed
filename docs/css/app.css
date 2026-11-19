@@ -289,3 +289,15 @@ h2 { font-size: 1.3rem; line-height: 1.25; }
 @media (min-width: 900px) { .aviso { bottom: 24px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 @media (max-width: 420px) { .status { flex-direction: column; gap: 12px; } .status-ic { width: 48px; height: 48px; } }
+
+/* O selo "De graça" fica embaixo do nome, para o nome nunca ser cortado no meio */
+.resultado, .opcao { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 14px; row-gap: 8px; align-items: center; }
+.opcao { grid-template-columns: minmax(0, 1fr) auto; }
+.resultado > .res-ic { grid-row: 1 / span 2; align-self: center; }
+.resultado > .res-txt { grid-column: 2; grid-row: 1; }
+.opcao > .opcao-txt { grid-column: 1; grid-row: 1; }
+.resultado > .selo { grid-column: 2; grid-row: 2; justify-self: start; }
+.opcao > .selo { grid-column: 1; grid-row: 2; justify-self: start; }
+.resultado > .seta { grid-column: 3; grid-row: 1 / span 2; }
+.opcao > .seta { grid-column: 2; grid-row: 1 / span 2; }
+.res-txt, .opcao-txt { overflow-wrap: break-word; hyphens: auto; }
