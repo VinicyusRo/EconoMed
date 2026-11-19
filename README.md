@@ -1,38 +1,63 @@
 # EconoMed
 
-App Android que diz se um remédio é gratuito no programa Farmácia Popular e onde retirar.
+Diz se um remédio é **de graça no Farmácia Popular**, qual dosagem é gratuita, o que levar à farmácia e qual é o **preço máximo** que a farmácia pode cobrar (tabela CMED/Anvisa).
 Projeto integrador do curso de Ciência da Computação.
 
-## Protótipo navegável
+## MVP (versão web)
 
 **Abrir:** https://vinicyusro.github.io/EconoMed/
 
-O protótipo simula o app num celular Android. Dá para tocar nas telas como no app de verdade, ou usar o painel ao lado para ir direto a qualquer tela, simular erros (sem internet, câmera negada, falha na leitura da receita) e testar fonte grande. O tema é sempre claro.
+Funciona no navegador do celular e do computador, sem instalar nada e sem login. Foi pensado para quem tem 60 anos ou mais: letra grande (com botão para aumentar), botões grandes, uma decisão por tela e linguagem simples.
 
-### Funções
+### O que já funciona de verdade
 
-- Busca por nome ou nome comercial, com "Você quis dizer?"
-- Escolha da dosagem e resultado gratuito, com o que levar à farmácia
-- Lista completa do programa, filtrada por doença
-- Leitura da receita por foto ou QR code
-- Farmácias credenciadas por CEP
-- Preço máximo permitido (CMED) e links para ver o preço nas redes
-- Meus remédios: próxima retirada e lembrete 3 dias antes
-- Ouvir o resultado em voz alta e compartilhar
-- Privacidade: sem login, tudo fica no celular
+- **Busca real** em 22.165 apresentações da tabela CMED de 09/11/2026: pelo nome da caixa (marca, ex.: Glifage) ou pelo nome do remédio (ex.: metformina), por doença ("pressão alta") e com "Você quis dizer?" para erros de digitação.
+- **De graça ou não, por dosagem:** cada apresentação da CMED é cruzada com o elenco do Farmácia Popular (princípio ativo + dosagem + forma).
+- **Preço máximo permitido** (PMC, ICMS 18%): o mais barato, a faixa dos genéricos e todas as marcas, mais links para ver o preço do dia nas redes.
+- **Foto da receita:** lê o texto no próprio aparelho (Tesseract.js) e acha os remédios e a dosagem escritos.
+- **Código de barras da caixa** e **QR code da receita digital** (BarcodeDetector ou ZXing).
+- **Meus remédios:** salvar, "Retirei hoje", próxima retirada em 30 dias e lembrete na agenda do celular (arquivo .ics).
+- **Farmácias:** CEP (ViaCEP) ou localização, abrindo o mapa com farmácias "Aqui tem Farmácia Popular".
+- **Ouvir em voz alta** e **Enviar** (WhatsApp etc.).
+- **Privacidade:** tudo fica no aparelho (localStorage). Dá para apagar tudo em Ajuda.
 
-O código fica em [`docs/index.html`](docs/index.html): um único arquivo HTML, CSS e JavaScript, sem dependências.
+O protótipo navegável aprovado pelo grupo continua em [`docs/prototipo/`](docs/prototipo/) (https://vinicyusro.github.io/EconoMed/docs/prototipo/).
+
+### Como o código está organizado
+
+```
+docs/                 site publicado no GitHub Pages (HTML, CSS e JS puros, sem build)
+  index.html
+  css/app.css         visual (paleta Verde Cuidado, fonte Lexend)
+  js/app.js           telas e navegação (rotas com #/)
+  js/dados.js         carrega os dados, busca, dosagens e preços
+  js/receita.js       leitura de foto (OCR) e de códigos
+  js/store.js         o que fica guardado no aparelho
+  data/remedios.json  tabela CMED convertida (gerada pelo script)
+  data/farmacia-popular.json
+scripts/
+  build_data.py       converte a planilha da CMED em docs/data/
+  farmacia_popular.json  elenco gratuito e as regras para casar com a CMED
+```
+
+### Atualizar os dados
+
+1. Baixe a planilha "PMC" mais nova no site da Anvisa (CMED, preços de medicamentos).
+2. Rode `pip install openpyxl` e depois `python3 scripts/build_data.py caminho/da/planilha.xlsx`.
+3. O script mostra quantas apresentações bateram com cada item gratuito. Item com 0 precisa de ajuste em `scripts/farmacia_popular.json`.
+
+### Rodar no computador
+
+```
+cd docs && python3 -m http.server 8000
+```
+e abra http://localhost:8000
 
 ### Fontes dos dados
 
-- Remédios e dosagens: lista do programa Farmácia Popular (Ministério da Saúde), versão de 10/11/2026.
-- Farmácias: no app, lista oficial "Aqui Tem Farmácia Popular". No protótipo, os endereços são exemplos.
-- Preço máximo permitido: tabela CMED/Anvisa publicada em 09/11/2026 (PMC com ICMS de 18%, São Paulo).
-- Preços de cada farmácia: o app não guarda. Os links abrem o site de cada rede (Drogasil, Droga Raia, Pague Menos).
-
-### Publicar no GitHub Pages
-
-Em **Settings › Pages**, escolha *Deploy from a branch* e a branch `main`. Com a pasta `/docs`, o endereço abre o protótipo direto. Com a pasta `/ (root)`, o `index.html` da raiz redireciona para `docs/`.
+- Remédios gratuitos: Programa Farmácia Popular do Brasil (Ministério da Saúde), versão de 10/11/2026. Confira a lista com a página oficial antes de apresentar.
+- Preço máximo: tabela CMED/Anvisa de 09/11/2026, PMC com ICMS de 18%.
+- Endereço pelo CEP: ViaCEP.
 
 ## Integrantes
 
