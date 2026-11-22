@@ -56,6 +56,7 @@ async function render() {
   }
   const html = tela(partes.slice(1), p);
   if (html === null) return; // tela cuidou do próprio desenho
+  $app.dataset.tela = nome || 'inicio';
   $app.innerHTML = html;
   depoisDeDesenhar(nome);
   if (mudouTela) {
@@ -100,16 +101,42 @@ function telaInicio() {
   const prox = proximaRetirada();
   return `
   <section class="hero">
-    <h1>Descubra se o seu remédio é de graça</h1>
-    <p class="lead">Confira na lista oficial do Farmácia Popular e veja o preço máximo que a farmácia pode cobrar.</p>
-    ${campoBusca()}
-    <div class="chips" aria-label="Mais procurados">
-      <span class="chips-titulo">Mais procurados:</span>
-      ${MAIS_PROCURADOS.map((m) => `<a class="chip" href="#/busca?q=${enc(m)}">${m}</a>`).join('')}
+    <div class="hero-texto">
+      <p class="hero-selo">${ic('shield')}Grátis, sem cadastro e sem login</p>
+      <h1>Descubra se o seu remédio é de graça</h1>
+      <p class="lead">Confira na lista oficial do Farmácia Popular e veja o preço máximo que a farmácia pode cobrar.</p>
+      ${campoBusca()}
+      <div class="chips" aria-label="Mais procurados">
+        <span class="chips-titulo">Mais procurados:</span>
+        ${MAIS_PROCURADOS.map((m) => `<a class="chip" href="#/busca?q=${enc(m)}">${m}</a>`).join('')}
+      </div>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="mock mock-tras">
+        <p class="mock-sobre">Glifage</p>
+        <p class="mock-nome">Metformina 500 mg</p>
+        <span class="selo gratis">${ic('check')}De graça</span>
+      </div>
+      <div class="mock mock-frente">
+        <p class="mock-sobre">Losartana potássica</p>
+        <p class="mock-nome">50 mg · comprimido</p>
+        <div class="mock-status">${ic('check')}<span>De graça no Farmácia Popular</span></div>
+        <div class="mock-linha"><span>Se for comprar, até</span><b>R$ 71,76</b></div>
+        <div class="mock-linha"><span>Genérico mais barato</span><b>R$ 16,55</b></div>
+      </div>
+      <span class="pilula p1"></span><span class="pilula p2"></span><span class="pilula p3"></span>
     </div>
   </section>
   ${prox}
-  <div class="grade">
+  <section class="como" aria-labelledby="t-como">
+    <h2 id="t-como">Como funciona</h2>
+    <ol class="passos">
+      <li><span class="passo-n">1</span><div><b>Digite ou fotografe</b><p>O nome do remédio, a marca da caixa ou a receita.</p></div></li>
+      <li><span class="passo-n">2</span><div><b>Escolha a dosagem</b><p>A mesma que está na receita, por exemplo 50 mg.</p></div></li>
+      <li><span class="passo-n">3</span><div><b>Retire de graça</b><p>Numa farmácia credenciada, com receita, documento com foto e CPF.</p></div></li>
+    </ol>
+  </section>
+  <div class="grade grade-3">
     <a class="cartao acao" href="#/receita">
       <span class="cartao-ic azul">${ic('camera')}</span>
       <span><b>Tem a receita ou a caixa?</b><span class="sub">Tire uma foto e o EconoMed procura o remédio para você.</span></span>
@@ -120,6 +147,11 @@ function telaInicio() {
       <span><b>Todos os remédios de graça</b><span class="sub">${DB.fp.itens.length} itens, separados por doença.</span></span>
       ${ic('chev', 'ic seta')}
     </a>
+    <a class="cartao acao so-maior" href="#/farmacias">
+      <span class="cartao-ic ambar">${ic('pin')}</span>
+      <span><b>Farmácias perto de você</b><span class="sub">Pelo CEP ou pela sua localização.</span></span>
+      ${ic('chev', 'ic seta')}
+    </a>
   </div>
   <section class="leve" aria-labelledby="t-levar">
     <h2 id="t-levar">Para pegar de graça na farmácia, leve</h2>
@@ -127,7 +159,7 @@ function telaInicio() {
       <li>${ic('doc')}<span><b>A receita médica</b> dentro da validade, com o nome do remédio e a dosagem. Pode ser do SUS ou de médico particular.</span></li>
       <li>${ic('person')}<span><b>Um documento com foto e o CPF.</b> Se outra pessoa for buscar, leve também os documentos dela.</span></li>
     </ul>
-    <a class="link-forte" href="#/farmacias">${ic('pin')}Achar uma farmácia credenciada</a>
+    <a class="link-forte so-celular" href="#/farmacias">${ic('pin')}Achar uma farmácia credenciada</a>
   </section>
   ${fonteLinha()}`;
 }
@@ -316,6 +348,7 @@ function telaResultado(sub, dose, marca) {
     <h1>${esc(nome.split(' + ').length > 1 ? nome : nome)} ${esc(d.conc)}</h1>
     <p class="lead">${esc(d.forma)}${tarja ? ` · ${esc(tarja)}` : ''}</p>
   </header>
+  <div class="res-layout"><div class="res-principal">
   ${status}
   ${outras}
   <div class="acoes">
@@ -325,7 +358,9 @@ function telaResultado(sub, dose, marca) {
     <button class="botao contorno" data-act="compartilhar" data-texto="${esc(dadosFala)}">${ic('share')}Enviar</button>
   </div>
   ${levar}
+  </div><aside class="res-lateral" aria-label="Preço">
   ${preco}
+  </aside></div>
   <p class="aviso-medico">${ic('info')}O EconoMed informa, mas não substitui o médico ou o farmacêutico.</p>`;
 }
 
